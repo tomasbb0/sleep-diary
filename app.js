@@ -1,27 +1,29 @@
-// App State
+// ==================== STATE ====================
 let currentUser = null;
-let currentDate = new Date();
-let currentQuestionIndex = 0;
 let answers = {};
+let editAnswers = {};
 let visibleQuestions = [];
+let editVisibleQuestions = [];
+let currentQuestionIndex = 0;
+let editQuestionIndex = 0;
+let editingDate = null;
+let existingDates = new Set();
+let countdownInterval = null;
 
-// DOM Elements
-const authScreen = document.getElementById('auth-screen');
-const appScreen = document.getElementById('app-screen');
-const authError = document.getElementById('auth-error');
+// Unlock time: 4:30 AM
+const UNLOCK_HOUR = 4;
+const UNLOCK_MINUTE = 30;
 
-// Initialize
+// ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
     initAuth();
     initTabs();
-    initDateSelector();
-    initQuestionNav();
+    initNewSession();
+    initHistory();
 });
 
 // ==================== AUTH ====================
-
 function initAuth() {
-    // Google Login
     document.getElementById('google-login').addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -31,7 +33,6 @@ function initAuth() {
         }
     });
 
-    // Apple Login
     document.getElementById('apple-login').addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.OAuthProvider('apple.com');
@@ -43,7 +44,6 @@ function initAuth() {
         }
     });
 
-    // Email Login
     document.getElementById('email-login').addEventListener('click', async () => {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -55,12 +55,11 @@ function initAuth() {
         }
     });
 
-    // Email Signup
     document.getElementById('email-signup').addEventListener('click', async () => {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         if (!email || !password) { showAuthError('Preencha email e password'); return; }
-        if (password.length < 6) { showAuthError('Password deve ter pelo menos 6 caracteres'); return; }
+        if (password.length < 6) { showAuthError('Password mínimo 6 caracteres'); return; }
         try {
             await auth.createUserWithEmailAndPassword(email, password);
         } catch (error) {
@@ -68,44 +67,42 @@ function initAuth() {
         }
     });
 
-    // Logout
     document.getElementById('logout').addEventListener('click', () => auth.signOut());
 
-    // Auth State Observer
     auth.onAuthStateChanged((user) => {
         currentUser = user;
         if (user) {
             showScreen('app');
-            loadTodayEntry();
+            loadExistingDates();
+            checkSessionAvailability();
         } else {
             showScreen('auth');
         }
     });
 }
 
-function showAuthError(message) {
-    authError.textContent = message;
-    setTimeout(() => authError.textContent = '', 5000);
+function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    setTimeout(() => el.textContent = '', 5000);
 }
 
 function translateError(code) {
     const errors = {
-        'auth/email-already-in-use': 'Este email já está registado',
+        'auth/email-already-in-use': 'Email já registado',
         'auth/invalid-email': 'Email inválido',
         'auth/user-not-found': 'Utilizador não encontrado',
-        'auth/wrong-password': 'Password incorreta',
-        'auth/weak-password': 'Password demasiado fraca'
+        'auth/wrong-password': 'Password incorreta'
     };
     return errors[code] || 'Erro de autenticação';
 }
 
 function showScreen(screen) {
-    authScreen.classList.toggle('active', screen === 'auth');
-    appScreen.classList.toggle('active', screen === 'app');
+    document.getElementById('auth-screen').classList.toggle('active', screen === 'auth');
+    document.getElementById('app-screen').classList.toggle('active', screen === 'app');
 }
 
 // ==================== TABS ====================
-
 function initTabs() {
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -118,107 +115,345 @@ function initTabs() {
     });
 }
 
-// ==================== DATE SELECTOR ====================
-
-function initDateSelector() {
-    updateDateDisplay();
-    document.getElementById('prev-day').addEventListener('click', () => {
-        currentDate.setDate(currentDate.getDate() - 1);
-        updateDateDisplay();
-        loadTodayEntry();
-    });
-    document.getElementById('next-day').addEventListener('click', () => {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        if (currentDate < tomorrow) {
-            currentDate.setDate(currentDate.getDate() + 1);
-            updateDateDisplay();
-            loadTodayEntry();
-        }
-    });
+// ==================== DATE UTILS ====================
+function getSessionDate() {
+    // Returns the "night date" - the date of the night we're recording
+    // If before 4:30 AM, it's still yesterday's night
+    const now = new Date();
+    if (now.getHours() < UNLOCK_HOUR || (now.getHours() === UNLOCK_HOUR && now.getMinutes() < UNLOCK_MINUTE)) {
+        now.setDate(now.getDate() - 1);
+    }
+    now.setDate(now.getDate() - 1); // Night before
+    return now.toISOString().split('T')[0];
 }
 
-function updateDateDisplay() {
-    const options = { weekday: 'long', day: 'numeric', month: 'long' };
-    const dateStr = currentDate.toLocaleDateString('pt-PT', options);
-    document.getElementById('current-date').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const current = new Date(currentDate); current.setHours(0, 0, 0, 0);
-    document.getElementById('next-day').disabled = current >= today;
+function getNextUnlockTime() {
+    const now = new Date();
+    const unlock = new Date(now);
+    unlock.setHours(UNLOCK_HOUR, UNLOCK_MINUTE, 0, 0);
+    if (now >= unlock) {
+        unlock.setDate(unlock.getDate() + 1);
+    }
+    return unlock;
 }
 
-function getDateKey(date) {
-    return date.toISOString().split('T')[0];
+function formatDatePT(dateStr) {
+    const date = new Date(dateStr + 'T12:00:00');
+    return date.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
 }
 
-// ==================== QUESTIONS ====================
-
-function initQuestionNav() {
-    document.getElementById('prev-question').addEventListener('click', () => {
-        if (currentQuestionIndex > 0) {
-            currentQuestionIndex--;
-            showQuestion(currentQuestionIndex);
-        }
-    });
-    document.getElementById('next-question').addEventListener('click', () => {
-        if (currentQuestionIndex < visibleQuestions.length - 1) {
-            currentQuestionIndex++;
-            showQuestion(currentQuestionIndex);
-        } else {
-            saveEntry();
-        }
-    });
+function formatDateLong(dateStr) {
+    const date = new Date(dateStr + 'T12:00:00');
+    return date.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-async function loadTodayEntry() {
+// ==================== NEW SESSION ====================
+function initNewSession() {
+    document.getElementById('start-session').addEventListener('click', startNewSession);
+    document.getElementById('cancel-session').addEventListener('click', cancelSession);
+    document.getElementById('prev-question').addEventListener('click', () => navigateQuestion(-1));
+    document.getElementById('next-question').addEventListener('click', () => navigateQuestion(1));
+}
+
+async function loadExistingDates() {
     if (!currentUser) return;
-    const dateKey = getDateKey(currentDate);
+    existingDates.clear();
     try {
-        const doc = await db.collection('users').doc(currentUser.uid)
-            .collection('entries').doc(dateKey).get();
-        if (doc.exists) {
-            answers = doc.data().answers || {};
-            updateEntryStatus(true);
-        } else {
-            answers = {};
-            updateEntryStatus(false);
-        }
-        renderQuestions();
-    } catch (error) {
-        console.error('Error loading entry:', error);
-        answers = {};
-        renderQuestions();
+        const snapshot = await db.collection('users').doc(currentUser.uid)
+            .collection('entries').get();
+        snapshot.forEach(doc => existingDates.add(doc.id));
+    } catch (e) {
+        console.error('Error loading dates:', e);
     }
 }
 
-function updateEntryStatus(complete) {
-    const status = document.getElementById('entry-status');
-    if (complete) {
-        status.className = 'complete';
-        status.textContent = '✅ Registo completo';
+function checkSessionAvailability() {
+    const sessionDate = getSessionDate();
+    const hasEntry = existingDates.has(sessionDate);
+    
+    document.getElementById('session-available').classList.toggle('hidden', hasEntry);
+    document.getElementById('session-locked').classList.toggle('hidden', !hasEntry);
+    document.getElementById('session-form').classList.add('hidden');
+    
+    if (hasEntry) {
+        startCountdown();
     } else {
-        status.className = 'incomplete';
-        status.textContent = '📝 Registo por completar';
+        if (countdownInterval) clearInterval(countdownInterval);
     }
 }
 
-function updateVisibleQuestions() {
-    visibleQuestions = QUESTIONS.filter(q => {
-        if (!q.condition) return true;
-        const condValue = answers[q.condition.field];
-        if (typeof q.condition.value === 'function') {
-            return q.condition.value(condValue);
-        }
-        return condValue === q.condition.value;
-    });
+function startCountdown() {
+    updateCountdown();
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(updateCountdown, 1000);
 }
 
-function renderQuestions() {
-    updateVisibleQuestions();
-    const container = document.getElementById('questions-container');
+function updateCountdown() {
+    const now = new Date();
+    const unlock = getNextUnlockTime();
+    const diff = unlock - now;
+    
+    if (diff <= 0) {
+        if (countdownInterval) clearInterval(countdownInterval);
+        loadExistingDates().then(() => checkSessionAvailability());
+        return;
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    document.getElementById('countdown').textContent = 
+        `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function startNewSession() {
+    const sessionDate = getSessionDate();
+    answers = {};
+    currentQuestionIndex = 0;
+    
+    document.getElementById('form-date').textContent = `Noite de ${formatDatePT(sessionDate)}`;
+    document.getElementById('session-available').classList.add('hidden');
+    document.getElementById('session-form').classList.remove('hidden');
+    
+    renderQuestions('questions-container', answers, 'new');
+}
+
+function cancelSession() {
+    document.getElementById('session-form').classList.add('hidden');
+    document.getElementById('session-available').classList.remove('hidden');
+}
+
+function navigateQuestion(dir) {
+    if (dir === 1 && currentQuestionIndex >= visibleQuestions.length - 1) {
+        saveNewEntry();
+        return;
+    }
+    currentQuestionIndex = Math.max(0, Math.min(visibleQuestions.length - 1, currentQuestionIndex + dir));
+    showQuestion(currentQuestionIndex, 'new');
+}
+
+async function saveNewEntry() {
+    const sessionDate = getSessionDate();
+    try {
+        await db.collection('users').doc(currentUser.uid)
+            .collection('entries').doc(sessionDate).set({
+                date: sessionDate,
+                answers: answers,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        existingDates.add(sessionDate);
+        checkSessionAvailability();
+    } catch (e) {
+        console.error('Error saving:', e);
+        alert('Erro ao guardar. Tente novamente.');
+    }
+}
+
+// ==================== HISTORY ====================
+function initHistory() {
+    document.getElementById('add-past-entry').addEventListener('click', showAddPastModal);
+    document.getElementById('cancel-add-past').addEventListener('click', hideAddPastModal);
+    document.getElementById('confirm-add-past').addEventListener('click', confirmAddPast);
+    document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
+    document.getElementById('save-edit').addEventListener('click', saveEdit);
+    document.getElementById('edit-prev-question').addEventListener('click', () => navigateEditQuestion(-1));
+    document.getElementById('edit-next-question').addEventListener('click', () => navigateEditQuestion(1));
+    document.getElementById('export-data').addEventListener('click', exportData);
+    
+    // Set max date for date picker
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('past-date-picker').max = today;
+}
+
+async function loadHistory() {
+    if (!currentUser) return;
+    const list = document.getElementById('history-list');
+    const editMode = document.getElementById('history-edit-mode');
+    const modal = document.getElementById('add-past-modal');
+    
+    // Show list, hide edit mode
+    list.classList.remove('hidden');
+    editMode.classList.add('hidden');
+    modal.classList.add('hidden');
+    
+    list.innerHTML = '<p style="text-align:center;color:#666;">A carregar...</p>';
+    
+    try {
+        const snapshot = await db.collection('users').doc(currentUser.uid)
+            .collection('entries').orderBy('date', 'desc').limit(30).get();
+        
+        await loadExistingDates();
+        
+        if (snapshot.empty) {
+            list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>Ainda não há registos.</p></div>`;
+            return;
+        }
+        
+        list.innerHTML = '';
+        const today = new Date().toISOString().split('T')[0];
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const a = data.answers || {};
+            const isToday = data.date === today;
+            const isComplete = a.qualidade_noite; // Has night data
+            
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <div class="history-item-left">
+                    <div class="history-date">Noite de ${formatDateLong(data.date)}</div>
+                    <div class="history-summary">
+                        😴 ${a.sono_total || '—'} · 
+                        🛏️ ${a.deitou || '—'} · 
+                        ⏰ ${a.acordou || '—'}
+                    </div>
+                </div>
+                <span class="history-status ${isComplete ? 'status-complete' : 'status-incomplete'}">
+                    ${isComplete ? 'Completo' : 'Em progresso'}
+                </span>
+            `;
+            item.addEventListener('click', () => startEdit(data.date, data.answers));
+            list.appendChild(item);
+        });
+    } catch (e) {
+        console.error('Error loading history:', e);
+        list.innerHTML = '<p style="color:#d32f2f;text-align:center;">Erro ao carregar</p>';
+    }
+}
+
+function showAddPastModal() {
+    document.getElementById('add-past-modal').classList.remove('hidden');
+    document.getElementById('add-past-error').textContent = '';
+    document.getElementById('past-date-picker').value = '';
+}
+
+function hideAddPastModal() {
+    document.getElementById('add-past-modal').classList.add('hidden');
+}
+
+function confirmAddPast() {
+    const dateStr = document.getElementById('past-date-picker').value;
+    const errorEl = document.getElementById('add-past-error');
+    
+    if (!dateStr) {
+        errorEl.textContent = 'Selecione uma data';
+        return;
+    }
+    
+    const selected = new Date(dateStr + 'T12:00:00');
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
+    if (selected > today) {
+        errorEl.textContent = 'Não pode adicionar datas futuras';
+        return;
+    }
+    
+    if (existingDates.has(dateStr)) {
+        errorEl.textContent = 'Esta data já existe. Clique na entrada para editar.';
+        return;
+    }
+    
+    hideAddPastModal();
+    startEdit(dateStr, {});
+}
+
+function startEdit(dateStr, existingAnswers) {
+    editingDate = dateStr;
+    editAnswers = { ...existingAnswers };
+    editQuestionIndex = 0;
+    
+    document.getElementById('edit-date').textContent = `Noite de ${formatDatePT(dateStr)}`;
+    document.getElementById('history-list').classList.add('hidden');
+    document.getElementById('history-edit-mode').classList.remove('hidden');
+    
+    renderQuestions('edit-questions-container', editAnswers, 'edit');
+}
+
+function cancelEdit() {
+    document.getElementById('history-edit-mode').classList.add('hidden');
+    document.getElementById('history-list').classList.remove('hidden');
+    editingDate = null;
+}
+
+async function saveEdit() {
+    if (!editingDate) return;
+    
+    try {
+        await db.collection('users').doc(currentUser.uid)
+            .collection('entries').doc(editingDate).set({
+                date: editingDate,
+                answers: editAnswers,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        existingDates.add(editingDate);
+        
+        // Show success feedback
+        const btn = document.getElementById('save-edit');
+        btn.textContent = '✅ Guardado!';
+        setTimeout(() => { btn.textContent = 'Guardar'; }, 2000);
+        
+        // Go back to list
+        cancelEdit();
+        loadHistory();
+    } catch (e) {
+        console.error('Error saving:', e);
+        alert('Erro ao guardar');
+    }
+}
+
+function navigateEditQuestion(dir) {
+    editQuestionIndex = Math.max(0, Math.min(editVisibleQuestions.length - 1, editQuestionIndex + dir));
+    showQuestion(editQuestionIndex, 'edit');
+}
+
+async function exportData() {
+    if (!currentUser) return;
+    try {
+        const snapshot = await db.collection('users').doc(currentUser.uid)
+            .collection('entries').orderBy('date', 'asc').get();
+        const entries = [];
+        snapshot.forEach(doc => entries.push(doc.data()));
+        
+        const headers = ['Data', ...QUESTIONS.map(q => q.title.replace(/^\d+\.\s*/, ''))];
+        const rows = entries.map(e => [e.date, ...QUESTIONS.map(q => e.answers?.[q.id] || '')]);
+        const csv = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `diario-sono-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error('Export error:', e);
+        alert('Erro ao exportar');
+    }
+}
+
+// ==================== QUESTIONS RENDERING ====================
+function renderQuestions(containerId, answersObj, mode) {
+    const isEdit = mode === 'edit';
+    const questionsList = QUESTIONS.filter(q => {
+        if (!q.condition) return true;
+        const val = answersObj[q.condition.field];
+        if (typeof q.condition.value === 'function') return q.condition.value(val);
+        return val === q.condition.value;
+    });
+    
+    if (isEdit) {
+        editVisibleQuestions = questionsList;
+    } else {
+        visibleQuestions = questionsList;
+    }
+    
+    const container = document.getElementById(containerId);
     container.innerHTML = '';
     
-    visibleQuestions.forEach((q, index) => {
+    questionsList.forEach((q, index) => {
         const questionEl = document.createElement('div');
         questionEl.className = 'question' + (index === 0 ? ' active' : '');
         questionEl.dataset.index = index;
@@ -228,35 +463,26 @@ function renderQuestions() {
         if (q.type === 'choice') {
             inputHtml = `<div class="options">
                 ${q.options.map(opt => `
-                    <button class="option ${answers[q.id] === opt ? 'selected' : ''}" data-value="${opt}">
-                        ${opt}
-                    </button>
-                `).join('')}
-            </div>`;
-        } else if (q.type === 'choice-multi') {
-            const selected = answers[q.id] || [];
-            inputHtml = `<div class="options multi">
-                ${q.options.map(opt => `
-                    <button class="option ${selected.includes(opt) ? 'selected' : ''}" data-value="${opt}">
+                    <button class="option ${answersObj[q.id] === opt ? 'selected' : ''}" data-value="${opt}">
                         ${opt}
                     </button>
                 `).join('')}
             </div>`;
         } else if (q.type === 'time-picker') {
-            const val = answers[q.id] || '12:00';
+            const val = answersObj[q.id] || '12:00';
             const [h, m] = val.split(':');
             inputHtml = createTimePicker(q.id, parseInt(h) || 12, parseInt(m) || 0);
         } else if (q.type === 'duration-picker') {
-            const val = parseInt(answers[q.id]) || 15;
+            const val = parseInt(answersObj[q.id]) || 15;
             inputHtml = createDurationPicker(q.id, val);
         } else if (q.type === 'sleep-duration-picker') {
-            const val = answers[q.id] || '7h 00min';
+            const val = answersObj[q.id] || '7h 00min';
             const match = val.match(/(\d+)h?\s*(\d+)?/);
             const hours = match ? parseInt(match[1]) : 7;
             const mins = match ? parseInt(match[2] || 0) : 0;
             inputHtml = createSleepDurationPicker(q.id, hours, mins);
         } else if (q.type === 'text') {
-            inputHtml = `<textarea class="text-input" rows="3" placeholder="Escreva aqui..." data-id="${q.id}">${answers[q.id] || ''}</textarea>`;
+            inputHtml = `<textarea class="text-input" rows="3" placeholder="Escreva aqui..." data-id="${q.id}">${answersObj[q.id] || ''}</textarea>`;
         }
         
         questionEl.innerHTML = `
@@ -269,70 +495,75 @@ function renderQuestions() {
         container.appendChild(questionEl);
     });
     
-    addQuestionListeners(container);
-    
-    currentQuestionIndex = 0;
-    showQuestion(0);
-    document.getElementById('question-nav').classList.remove('hidden');
+    addQuestionListeners(container, answersObj, mode);
+    showQuestion(0, mode);
 }
 
-function addQuestionListeners(container) {
-    // Single choice options
-    container.querySelectorAll('.options:not(.multi) .option').forEach(opt => {
+function addQuestionListeners(container, answersObj, mode) {
+    const isEdit = mode === 'edit';
+    const questionsList = isEdit ? editVisibleQuestions : visibleQuestions;
+    
+    container.querySelectorAll('.options .option').forEach(opt => {
         opt.addEventListener('click', (e) => {
             const questionEl = e.target.closest('.question');
-            const questionIndex = parseInt(questionEl.dataset.index);
-            const question = visibleQuestions[questionIndex];
+            const idx = parseInt(questionEl.dataset.index);
+            const question = questionsList[idx];
             questionEl.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
             e.target.classList.add('selected');
-            answers[question.id] = e.target.dataset.value;
-            updateVisibleQuestions();
+            answersObj[question.id] = e.target.dataset.value;
+            
+            // Re-render to handle conditional questions
             setTimeout(() => {
-                if (currentQuestionIndex < visibleQuestions.length - 1) {
-                    currentQuestionIndex++;
-                    showQuestion(currentQuestionIndex);
-                } else {
-                    saveEntry();
+                const currentIdx = isEdit ? editQuestionIndex : currentQuestionIndex;
+                if (currentIdx < questionsList.length - 1) {
+                    if (isEdit) {
+                        editQuestionIndex++;
+                        renderQuestions('edit-questions-container', editAnswers, 'edit');
+                    } else {
+                        currentQuestionIndex++;
+                        renderQuestions('questions-container', answers, 'new');
+                    }
                 }
-            }, 300);
+            }, 200);
         });
     });
     
-    // Multi choice options
-    container.querySelectorAll('.options.multi .option').forEach(opt => {
-        opt.addEventListener('click', (e) => {
-            const questionEl = e.target.closest('.question');
-            const questionIndex = parseInt(questionEl.dataset.index);
-            const question = visibleQuestions[questionIndex];
-            
-            e.target.classList.toggle('selected');
-            
-            const selected = [];
-            questionEl.querySelectorAll('.option.selected').forEach(o => {
-                selected.push(o.dataset.value);
-            });
-            answers[question.id] = selected;
-        });
-    });
-    
-    // Text inputs
     container.querySelectorAll('.text-input').forEach(input => {
         input.addEventListener('change', (e) => {
             const questionEl = e.target.closest('.question');
-            const questionIndex = parseInt(questionEl.dataset.index);
-            const question = visibleQuestions[questionIndex];
-            answers[question.id] = e.target.value;
+            const idx = parseInt(questionEl.dataset.index);
+            const question = questionsList[idx];
+            answersObj[question.id] = e.target.value;
         });
     });
     
-    // Initialize all pickers
     container.querySelectorAll('.picker-container').forEach(picker => {
-        initWheelPicker(picker);
+        initWheelPicker(picker, answersObj);
     });
 }
 
-// ==================== WHEEL PICKERS (iPhone style) ====================
+function showQuestion(index, mode) {
+    const isEdit = mode === 'edit';
+    const containerId = isEdit ? 'edit-questions-container' : 'questions-container';
+    const progressId = isEdit ? 'edit-question-progress' : 'question-progress';
+    const prevBtnId = isEdit ? 'edit-prev-question' : 'prev-question';
+    const nextBtnId = isEdit ? 'edit-next-question' : 'next-question';
+    const questionsList = isEdit ? editVisibleQuestions : visibleQuestions;
+    
+    document.querySelectorAll(`#${containerId} .question`).forEach((q, i) => {
+        q.classList.toggle('active', i === index);
+    });
+    
+    document.getElementById(progressId).textContent = `${index + 1} / ${questionsList.length}`;
+    document.getElementById(prevBtnId).disabled = index === 0;
+    
+    const nextBtn = document.getElementById(nextBtnId);
+    if (!isEdit) {
+        nextBtn.textContent = index === questionsList.length - 1 ? '💾 Guardar' : 'Próxima →';
+    }
+}
 
+// ==================== WHEEL PICKERS ====================
 function createTimePicker(id, hours, minutes) {
     const hourOptions = Array.from({length: 24}, (_, i) => 
         `<div class="wheel-item ${i === hours ? 'selected' : ''}" data-value="${i}">${String(i).padStart(2, '0')}</div>`
@@ -340,7 +571,7 @@ function createTimePicker(id, hours, minutes) {
     
     const minOptions = Array.from({length: 12}, (_, i) => {
         const m = i * 5;
-        return `<div class="wheel-item ${m === minutes || (minutes > m && minutes < m + 5) ? 'selected' : ''}" data-value="${m}">${String(m).padStart(2, '0')}</div>`;
+        return `<div class="wheel-item ${m === Math.floor(minutes/5)*5 ? 'selected' : ''}" data-value="${m}">${String(m).padStart(2, '0')}</div>`;
     }).join('');
     
     return `
@@ -429,7 +660,7 @@ function createSleepDurationPicker(id, hours, minutes) {
     `;
 }
 
-function initWheelPicker(container) {
+function initWheelPicker(container, answersObj) {
     const display = container.querySelector('.picker-display');
     const modal = container.querySelector('.wheel-picker-modal');
     const cancel = container.querySelector('.picker-cancel');
@@ -465,7 +696,7 @@ function initWheelPicker(container) {
             value = `${hours}h ${String(mins).padStart(2, '0')}min`;
             display.querySelector('.picker-value').textContent = value;
         }
-        answers[id] = value;
+        answersObj[id] = value;
         modal.classList.add('hidden');
     });
     
@@ -506,116 +737,6 @@ function debounce(fn, delay) {
         timeout = setTimeout(() => fn(...args), delay);
     };
 }
-
-function showQuestion(index) {
-    document.querySelectorAll('.question').forEach((q, i) => {
-        q.classList.toggle('active', i === index);
-    });
-    document.getElementById('question-progress').textContent = `${index + 1} / ${visibleQuestions.length}`;
-    document.getElementById('prev-question').disabled = index === 0;
-    const nextBtn = document.getElementById('next-question');
-    nextBtn.textContent = index === visibleQuestions.length - 1 ? '💾 Guardar' : 'Próxima →';
-}
-
-async function saveEntry() {
-    if (!currentUser) return;
-    const dateKey = getDateKey(currentDate);
-    try {
-        await db.collection('users').doc(currentUser.uid)
-            .collection('entries').doc(dateKey).set({
-                date: dateKey,
-                answers: answers,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        updateEntryStatus(true);
-        const btn = document.getElementById('next-question');
-        btn.textContent = '✅ Guardado!';
-        btn.disabled = true;
-        setTimeout(() => { btn.textContent = '💾 Guardar'; btn.disabled = false; }, 2000);
-    } catch (error) {
-        console.error('Error saving entry:', error);
-        alert('Erro ao guardar. Tente novamente.');
-    }
-}
-
-// ==================== HISTORY ====================
-
-async function loadHistory() {
-    if (!currentUser) return;
-    const historyList = document.getElementById('history-list');
-    historyList.innerHTML = '<p class="loading">A carregar...</p>';
-    try {
-        const snapshot = await db.collection('users').doc(currentUser.uid)
-            .collection('entries').orderBy('date', 'desc').limit(30).get();
-        
-        if (snapshot.empty) {
-            historyList.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>Ainda não há registos.<br>Comece a registar o seu sono hoje!</p></div>`;
-            return;
-        }
-        
-        historyList.innerHTML = '';
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const dateObj = new Date(data.date + 'T00:00:00');
-            const dateStr = dateObj.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' });
-            const a = data.answers || {};
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.innerHTML = `
-                <div class="history-date">${dateStr}</div>
-                <div class="history-summary">
-                    <span>😴 ${a.sono_total || '—'}</span>
-                    <span>🛏️ ${a.deitou || '—'}</span>
-                    <span>⏰ ${a.acordou || '—'}</span>
-                    <span>${getEmoji(a.qualidade_noite)} ${a.qualidade_noite || '—'}</span>
-                </div>
-            `;
-            item.addEventListener('click', () => {
-                currentDate = dateObj;
-                updateDateDisplay();
-                loadTodayEntry();
-                document.querySelector('[data-tab="entry"]').click();
-            });
-            historyList.appendChild(item);
-        });
-    } catch (error) {
-        console.error('Error loading history:', error);
-        historyList.innerHTML = '<p class="error">Erro ao carregar histórico</p>';
-    }
-}
-
-function getEmoji(quality) {
-    const emojis = { 'Muito mal': '😫', 'Mal': '😕', 'Razoavelmente': '😐', 'Bem': '🙂', 'Muito bem': '😊' };
-    return emojis[quality] || '😐';
-}
-
-// ==================== EXPORT ====================
-
-document.getElementById('export-data').addEventListener('click', async () => {
-    if (!currentUser) return;
-    try {
-        const snapshot = await db.collection('users').doc(currentUser.uid)
-            .collection('entries').orderBy('date', 'asc').get();
-        const entries = [];
-        snapshot.forEach(doc => entries.push(doc.data()));
-        const headers = ['Data', ...QUESTIONS.map(q => q.title)];
-        const rows = entries.map(e => [e.date, ...QUESTIONS.map(q => {
-            const val = e.answers?.[q.id];
-            return Array.isArray(val) ? val.join('; ') : (val || '');
-        })]);
-        const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `diario-sono-${getDateKey(new Date())}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-    } catch (error) {
-        console.error('Error exporting:', error);
-        alert('Erro ao exportar dados');
-    }
-});
 
 // ==================== PWA ====================
 if ('serviceWorker' in navigator) {

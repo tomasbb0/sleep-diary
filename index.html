@@ -30,7 +30,7 @@
             
             <button id="apple-login">
                 <svg width="18" height="18" viewBox="0 0 18 18" style="vertical-align: middle; margin-right: 8px;">
-                    <path fill="currentColor" d="M14.94 9.88c-.02-2.07 1.69-3.06 1.77-3.11-.96-1.41-2.46-1.6-3-1.63-1.27-.13-2.49.75-3.14.75-.65 0-1.65-.73-2.72-.71-1.4.02-2.69.81-3.41 2.07-1.46 2.53-.37 6.27 1.04 8.32.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.73.66 1.13-.02 1.84-1.02 2.52-2.03.8-1.17 1.13-2.3 1.14-2.36-.02-.01-2.19-.84-2.22-3.33l-.05-.05zM12.85 3.42c.57-.7.96-1.66.85-2.62-.82.03-1.82.55-2.41 1.24-.53convergence.61-1 1.53-.87 2.46.92.07 1.86-.46 2.43-1.08z"/>
+                    <path fill="currentColor" d="M14.94 9.88c-.02-2.07 1.69-3.06 1.77-3.11-.96-1.41-2.46-1.6-3-1.63-1.27-.13-2.49.75-3.14.75-.65 0-1.65-.73-2.72-.71-1.4.02-2.69.81-3.41 2.07-1.46 2.53-.37 6.27 1.04 8.32.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.73.66 1.13-.02 1.84-1.02 2.52-2.03.8-1.17 1.13-2.3 1.14-2.36-.02-.01-2.19-.84-2.22-3.33l-.05-.05zM12.85 3.42c.57-.7.96-1.66.85-2.62-.82.03-1.82.55-2.41 1.24-.53.61-1 1.53-.87 2.46.92.07 1.86-.46 2.43-1.08z"/>
                 </svg>
                 Continuar com Apple
             </button>
@@ -58,34 +58,80 @@
         </header>
         
         <nav class="tabs">
-            <button class="tab active" data-tab="entry">📝 Registo</button>
-            <button class="tab" data-tab="history">📊 Histórico</button>
+            <button class="tab active" data-tab="new-session">🌙 Nova Sessão</button>
+            <button class="tab" data-tab="history">📋 Histórico</button>
         </nav>
         
-        <!-- Entry Tab -->
-        <div id="entry-tab" class="tab-content active">
-            <div class="date-selector">
-                <button id="prev-day">←</button>
-                <div style="text-align: center;">
-                    <div id="current-date">Hoje</div>
-                    <div id="entry-status" class="incomplete">📝 Por completar</div>
-                </div>
-                <button id="next-day">→</button>
+        <!-- New Session Tab -->
+        <div id="new-session-tab" class="tab-content active">
+            <div id="session-available" class="session-box">
+                <div class="session-icon">🌅</div>
+                <h2>Última Noite</h2>
+                <p class="session-subtitle">Registe como dormiu e como se sente esta manhã</p>
+                <button id="start-session" class="btn-primary">Começar Registo</button>
             </div>
             
-            <div id="questions-container"></div>
+            <div id="session-locked" class="session-box hidden">
+                <div class="session-icon">⏳</div>
+                <h2>Registo Completo!</h2>
+                <p class="session-subtitle">Próximo registo disponível em:</p>
+                <div id="countdown" class="countdown">--:--:--</div>
+                <p class="countdown-note">Disponível às 04:30</p>
+            </div>
             
-            <div id="question-nav" class="question-nav hidden">
-                <button id="prev-question">← Anterior</button>
-                <span id="question-progress">1 / 10</span>
-                <button id="next-question">Próxima →</button>
+            <div id="session-form" class="hidden">
+                <div class="form-header">
+                    <button id="cancel-session" class="btn-text">← Cancelar</button>
+                    <span id="form-date">Noite de 12 Jan</span>
+                </div>
+                <div id="questions-container"></div>
+                <div id="question-nav" class="question-nav">
+                    <button id="prev-question">← Anterior</button>
+                    <span id="question-progress">1 / 15</span>
+                    <button id="next-question">Próxima →</button>
+                </div>
             </div>
         </div>
         
         <!-- History Tab -->
         <div id="history-tab" class="tab-content">
+            <div class="history-header">
+                <h2>Entradas</h2>
+                <button id="add-past-entry" class="btn-small">+ Adicionar</button>
+            </div>
+            
             <div id="history-list"></div>
-            <button id="export-data">📥 Exportar CSV</button>
+            
+            <!-- Edit mode (hidden by default) -->
+            <div id="history-edit-mode" class="hidden">
+                <div class="form-header">
+                    <button id="cancel-edit" class="btn-text">← Voltar</button>
+                    <span id="edit-date">Editar: 12 Jan</span>
+                    <button id="save-edit" class="btn-small btn-save">Guardar</button>
+                </div>
+                <div id="edit-questions-container"></div>
+                <div id="edit-question-nav" class="question-nav">
+                    <button id="edit-prev-question">← Anterior</button>
+                    <span id="edit-question-progress">1 / 15</span>
+                    <button id="edit-next-question">Próxima →</button>
+                </div>
+            </div>
+            
+            <!-- Add past entry modal -->
+            <div id="add-past-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h3>Adicionar Entrada Passada</h3>
+                    <p>Selecione a noite que quer registar:</p>
+                    <input type="date" id="past-date-picker">
+                    <div class="modal-buttons">
+                        <button id="cancel-add-past" class="btn-secondary">Cancelar</button>
+                        <button id="confirm-add-past" class="btn-primary">Continuar</button>
+                    </div>
+                    <p id="add-past-error" class="error-text"></p>
+                </div>
+            </div>
+            
+            <button id="export-data" class="btn-export">📥 Exportar CSV</button>
         </div>
     </div>
 
