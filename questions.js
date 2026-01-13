@@ -1,23 +1,22 @@
 // Sleep Diary Questions - EXACTLY matching original paper form
-// Maximum multiple choice for ease of use
 const QUESTIONS = [
     // ==================== MANHÃ ====================
     {
         id: 'acordou',
         section: 'MANHÃ',
-        title: 'A que horas acordou esta manhã?',
+        title: '1. A que horas acordou esta manhã?',
         type: 'time-picker'
     },
     {
         id: 'levantou',
         section: 'MANHÃ',
-        title: 'A que horas se levantou da cama esta manhã?',
+        title: '2. A que horas se levantou da cama esta manhã?',
         type: 'time-picker'
     },
     {
         id: 'como_sente_manha',
         section: 'MANHÃ',
-        title: 'Como se sente esta manhã?',
+        title: '3. Como se sente esta manhã?',
         type: 'choice',
         options: ['Muito mal', 'Mal', 'Razoavelmente', 'Bem', 'Muito bem']
     },
@@ -26,25 +25,24 @@ const QUESTIONS = [
     {
         id: 'sestas',
         section: 'FATORES DIÁRIOS',
-        title: 'Sestas durante o dia',
+        title: '4. Sestas durante o dia',
         type: 'choice',
         options: ['Não', 'Sim']
     },
     {
         id: 'sestas_duracao',
         section: 'FATORES DIÁRIOS',
-        title: 'Se sim, duração:',
-        type: 'choice',
-        options: ['15 min', '30 min', '45 min', '1 hora', '1h30', '2 horas', '2h+'],
+        title: 'Duração da sesta:',
+        type: 'duration-picker',
         condition: { field: 'sestas', value: 'Sim' }
     },
     {
         id: 'cafeina',
         section: 'FATORES DIÁRIOS',
-        title: 'Ingestão de Cafeína (chás, cafés, etc)',
+        title: '5. Ingestão de Cafeína (chás, cafés, etc)',
         subtitle: 'Tipo e quantidade',
         type: 'choice',
-        options: ['Não bebi', '1 café/chá', '2 cafés/chás', '3 cafés/chás', '4 cafés/chás', '5+ cafés/chás']
+        options: ['Não bebi', '1 café/chá', '2 cafés/chás', '3 cafés/chás', '4+ cafés/chás']
     },
     {
         id: 'cafeina_ultima_hora',
@@ -56,16 +54,16 @@ const QUESTIONS = [
     {
         id: 'atividade_fisica',
         section: 'FATORES DIÁRIOS',
-        title: 'Atividade Física (tipo e duração)',
+        title: '6. Atividade Física',
+        subtitle: 'Tipo e duração',
         type: 'choice',
-        options: ['Nenhuma', 'Caminhada leve', 'Caminhada longa', 'Corrida', 'Ginásio', 'Bicicleta', 'Natação', 'Outro']
+        options: ['Nenhuma', 'Caminhada', 'Corrida', 'Ginásio', 'Natação', 'Bicicleta', 'Outro']
     },
     {
         id: 'atividade_fisica_duracao',
         section: 'FATORES DIÁRIOS',
-        title: 'Duração da atividade física',
-        type: 'choice',
-        options: ['15 min', '30 min', '45 min', '1 hora', '1h30', '2 horas', '2h+'],
+        title: 'Duração:',
+        type: 'duration-picker',
         condition: { field: 'atividade_fisica', value: (v) => v && v !== 'Nenhuma' }
     },
     
@@ -73,82 +71,62 @@ const QUESTIONS = [
     {
         id: 'deitou',
         section: 'NOITE',
-        title: 'A que horas se deitou na noite passada?',
+        title: '7. A que horas se deitou na noite passada?',
         type: 'time-picker'
     },
     {
         id: 'tempo_adormecer',
         section: 'NOITE',
-        title: 'Quanto tempo demorou a adormecer?',
+        title: '8. Quanto tempo demorou a adormecer?',
         subtitle: '(em minutos)',
-        type: 'choice',
-        options: ['< 5 min', '5-10 min', '10-15 min', '15-30 min', '30-45 min', '45-60 min', '1-2 horas', '2+ horas']
+        type: 'duration-picker'
     },
     {
         id: 'vezes_acordou',
         section: 'NOITE',
-        title: 'Quantas vezes acordou durante a noite?',
+        title: '9. Quantas vezes acordou durante a noite?',
         type: 'choice',
         options: ['0', '1', '2', '3', '4', '5+']
     },
     {
         id: 'despertares_oque',
         section: 'NOITE',
-        title: 'O que fez durante os despertares noturnos?',
-        type: 'choice-multi',
-        options: ['Fui à casa de banho', 'Bebi água', 'Olhei o telemóvel', 'Fiquei na cama', 'Levantei-me', 'Comi algo', 'Outro'],
+        title: '10. O que fez durante os despertares noturnos?',
+        type: 'text',
         condition: { field: 'vezes_acordou', value: (v) => v && v !== '0' }
     },
     {
         id: 'tempo_acordado_noite',
         section: 'NOITE',
-        title: 'Quanto tempo esteve acordado durante a noite?',
+        title: '11. Quanto tempo esteve acordado durante a noite?',
         subtitle: '(total em minutos)',
-        type: 'choice',
-        options: ['< 5 min', '5-15 min', '15-30 min', '30-60 min', '1-2 horas', '2-3 horas', '3+ horas'],
+        type: 'duration-picker',
         condition: { field: 'vezes_acordou', value: (v) => v && v !== '0' }
     },
     {
         id: 'sono_total',
         section: 'NOITE',
-        title: 'Quanto tempo dormiu ao todo?',
+        title: '12. Quanto tempo dormiu ao todo?',
         subtitle: '(em horas/minutos)',
         type: 'sleep-duration-picker'
     },
     {
         id: 'comprimidos',
         section: 'NOITE',
-        title: 'Que comprimidos tomou para dormir na noite passada?',
-        type: 'choice',
-        options: ['Nenhum', 'Melatonina', 'Stilnox/Zolpidem', 'Valdispert', 'Outro']
-    },
-    {
-        id: 'comprimidos_qtd',
-        section: 'NOITE',
-        title: 'Quantos comprimidos?',
-        type: 'choice',
-        options: ['1', '2', '3', '4+'],
-        condition: { field: 'comprimidos', value: (v) => v && v !== 'Nenhum' }
+        title: '13. Que comprimidos tomou para dormir na noite passada? Quantos?',
+        type: 'text'
     },
     {
         id: 'alcool',
         section: 'NOITE',
-        title: 'Que quantidade de bebidas alcoólicas ingeriu na noite passada?',
+        title: '14. Que quantidade de bebidas alcoólicas ingeriu na noite passada?',
         type: 'choice',
-        options: ['Não bebi', '1-2 bebidas', '3-4 bebidas', '5-6 bebidas', '7+ bebidas']
-    },
-    {
-        id: 'alcool_tipo',
-        section: 'NOITE',
-        title: 'Que tipo de bebidas?',
-        type: 'choice-multi',
-        options: ['Cerveja', 'Vinho', 'Shots', 'Cocktails', 'Whisky/Gin/Vodka', 'Outro'],
-        condition: { field: 'alcool', value: (v) => v && v !== 'Não bebi' }
+        options: ['Não bebi', '1 bebida', '2 bebidas', '3 bebidas', '4+ bebidas']
     },
     {
         id: 'qualidade_noite',
         section: 'NOITE',
-        title: 'Como acha que passou a noite?',
+        title: '15. Como acha que passou a noite?',
         type: 'choice',
         options: ['Muito mal', 'Mal', 'Razoavelmente', 'Bem', 'Muito bem']
     }

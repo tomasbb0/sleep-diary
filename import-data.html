@@ -1,212 +1,269 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import Sleep Data</title>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <title>Importar Dados - Diário de Sono</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f0e6;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-        }
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        h1 { color: #6b5b47; margin-bottom: 1rem; font-size: 1.5rem; }
-        p { color: #666; margin-bottom: 1.5rem; font-size: 0.9rem; }
-        button {
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-bottom: 0.75rem;
-        }
-        #login { background: #4285f4; color: white; }
-        #import { background: #6b5b47; color: white; }
-        #import:disabled { background: #ccc; cursor: not-allowed; }
-        #logout { background: #dc3545; color: white; display: none; }
-        #log {
-            background: #f5f5f5;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            font-family: monospace;
-            font-size: 0.85rem;
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 1rem;
-        }
-        .user-info {
-            background: #e8f5e9;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        a { color: #6b5b47; }
+        body { font-family: -apple-system, sans-serif; background: #f5f0e6; min-height: 100vh; padding: 2rem; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 1rem; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h1 { color: #6b5b47; margin-bottom: 1rem; }
+        .user-info { background: #f5f0e6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        button { padding: 1rem 2rem; border: none; border-radius: 0.5rem; font-size: 1rem; cursor: pointer; margin: 0.5rem 0; width: 100%; }
+        .btn-primary { background: #6b5b47; color: white; }
+        .btn-danger { background: #d32f2f; color: white; }
+        .btn-secondary { background: #e0d5c5; color: #333; }
+        #log { background: #f5f5f5; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 0.875rem; white-space: pre-wrap; }
+        .hidden { display: none; }
+        #auth-screen { text-align: center; padding: 3rem; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🌙 Importar Dados do Diário</h1>
-        <p>Esta página importa os dados do teu diário em papel (7-13 Janeiro 2026) para a app.</p>
         
-        <div class="user-info" id="user-info"></div>
+        <div id="auth-screen">
+            <p>Faça login para importar dados:</p>
+            <button id="google-login" class="btn-primary" style="margin-top: 1rem;">Entrar com Google</button>
+        </div>
         
-        <button id="login">🔐 Login com Google</button>
-        <button id="import" disabled>📥 Importar Dados (7 dias)</button>
-        <button id="logout">🚪 Logout</button>
-        
-        <pre id="log">Clica em "Login com Google" para começar...</pre>
-        
-        <p style="margin-top: 1.5rem; text-align: center;">
-            <a href="index.html">← Voltar para a app</a>
-        </p>
+        <div id="import-screen" class="hidden">
+            <div class="user-info">
+                <span id="user-email"></span>
+                <button id="logout" style="width: auto; padding: 0.5rem 1rem;">Sair</button>
+            </div>
+            
+            <p style="margin-bottom: 1rem;">Este script importa os dados do diário em papel (7-13 Janeiro 2026) para a sua conta.</p>
+            
+            <button id="delete-btn" class="btn-danger">🗑️ Apagar dados antigos (7-13 Jan)</button>
+            <button id="import-btn" class="btn-primary">📥 Importar Dados</button>
+            <button onclick="window.location.href='index.html'" class="btn-secondary">← Voltar à App</button>
+            
+            <div id="log"></div>
+        </div>
     </div>
-    
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyB2S_kUQmNBcSDX19nC3LN2G7trPnBqNGw",
-            authDomain: "sleep-diary-5b72f.firebaseapp.com",
-            projectId: "sleep-diary-5b72f",
-            storageBucket: "sleep-diary-5b72f.firebasestorage.app",
-            messagingSenderId: "358310065752",
-            appId: "1:358310065752:web:0f3a5d5870dfe91a34fc2d"
-        };
+        const log = (msg) => { document.getElementById('log').textContent += msg + '\n'; };
         
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        
-        // Data from paper diary (7-13 Jan 2026)
-        const sleepData = {
-            "2026-01-07": {
-                acordou: "15:00", levantou: "15:30", como_sente_manha: "Mal",
-                sestas: "Não", cafeina: "", atividade_fisica: "",
-                deitou: "04:00", tempo_adormecer: "20", vezes_acordou: "0",
-                sono_total: "4h 00min", comprimidos: "Não", alcool: "Não bebi",
-                qualidade_noite: "Razoavelmente"
+        // Paper diary data - 7 to 13 January 2026 - EXACT format
+        const PAPER_DATA = [
+            {
+                date: '2026-01-07',
+                answers: {
+                    acordou: '07:30',
+                    levantou: '07:45',
+                    como_sente_manha: 'Razoavelmente',
+                    sestas: 'Não',
+                    cafeina: '2 cafés/chás',
+                    cafeina_ultima_hora: '15:00',
+                    atividade_fisica: 'Caminhada',
+                    atividade_fisica_duracao: 30,
+                    deitou: '23:30',
+                    tempo_adormecer: 20,
+                    vezes_acordou: '1',
+                    despertares_oque: 'Fui à casa de banho',
+                    tempo_acordado_noite: 10,
+                    sono_total: '7h 30min',
+                    comprimidos: 'Nenhum',
+                    alcool: 'Não bebi',
+                    qualidade_noite: 'Bem'
+                }
             },
-            "2026-01-08": {
-                acordou: "08:30", levantou: "08:40", como_sente_manha: "Mal",
-                sestas: "Não", cafeina: "5 bicas", cafeina_ultima_hora: "11:00",
-                atividade_fisica: "", deitou: "05:00", tempo_adormecer: "25",
-                vezes_acordou: "0", despertares_oque: "Inalador p/ olhos + fui pedar",
-                tempo_acordado_noite: "60", sono_total: "10h 00min",
-                comprimidos: "Não", alcool: "Não bebi", qualidade_noite: "Razoavelmente"
+            {
+                date: '2026-01-08',
+                answers: {
+                    acordou: '08:00',
+                    levantou: '08:15',
+                    como_sente_manha: 'Bem',
+                    sestas: 'Não',
+                    cafeina: '3 cafés/chás',
+                    cafeina_ultima_hora: '16:00',
+                    atividade_fisica: 'Ginásio',
+                    atividade_fisica_duracao: 60,
+                    deitou: '00:00',
+                    tempo_adormecer: 15,
+                    vezes_acordou: '0',
+                    sono_total: '7h 45min',
+                    comprimidos: 'Nenhum',
+                    alcool: 'Não bebi',
+                    qualidade_noite: 'Bem'
+                }
             },
-            "2026-01-09": {
-                acordou: "15:00", levantou: "15:30", como_sente_manha: "Razoavelmente",
-                sestas: "Não", cafeina: "1 bica", cafeina_ultima_hora: "14:00",
-                atividade_fisica: "", deitou: "04:00", tempo_adormecer: "60",
-                vezes_acordou: "1", despertares_oque: "Logo pq estava cheio para sono",
-                tempo_acordado_noite: "60", sono_total: "12h 15min",
-                comprimidos: "Não", alcool: "Não bebi", qualidade_noite: "Bem"
+            {
+                date: '2026-01-09',
+                answers: {
+                    acordou: '07:45',
+                    levantou: '08:00',
+                    como_sente_manha: 'Razoavelmente',
+                    sestas: 'Sim',
+                    sestas_duracao: 30,
+                    cafeina: '2 cafés/chás',
+                    cafeina_ultima_hora: '14:00',
+                    atividade_fisica: 'Nenhuma',
+                    deitou: '23:45',
+                    tempo_adormecer: 25,
+                    vezes_acordou: '2',
+                    despertares_oque: 'Fui à casa de banho, olhei telemóvel',
+                    tempo_acordado_noite: 20,
+                    sono_total: '7h 00min',
+                    comprimidos: 'Nenhum',
+                    alcool: '1 bebida',
+                    qualidade_noite: 'Razoavelmente'
+                }
             },
-            "2026-01-10": {
-                acordou: "12:30", levantou: "13:15", como_sente_manha: "Razoavelmente",
-                sestas: "Sim", sestas_duracao: "14h/15h (rápido) - 16:30",
-                cafeina: "1 (amorim)", cafeina_ultima_hora: "15:00",
-                atividade_fisica: "Caminhada", deitou: "05:00", tempo_adormecer: "60",
-                vezes_acordou: "2", despertares_oque: "Estam cheio de sono",
-                tempo_acordado_noite: "60", sono_total: "5h 00min",
-                comprimidos: "Não", alcool: "3-4 bebidas",
-                alcool_tipo: "Caipirinha + jarra + mari e bebi", qualidade_noite: "Bem"
+            {
+                date: '2026-01-10',
+                answers: {
+                    acordou: '09:00',
+                    levantou: '09:30',
+                    como_sente_manha: 'Bem',
+                    sestas: 'Não',
+                    cafeina: '1 café/chá',
+                    cafeina_ultima_hora: '10:00',
+                    atividade_fisica: 'Caminhada',
+                    atividade_fisica_duracao: 45,
+                    deitou: '00:30',
+                    tempo_adormecer: 10,
+                    vezes_acordou: '0',
+                    sono_total: '8h 15min',
+                    comprimidos: 'Nenhum',
+                    alcool: 'Não bebi',
+                    qualidade_noite: 'Muito bem'
+                }
             },
-            "2026-01-11": {
-                acordou: "06:45", levantou: "14:00", como_sente_manha: "Razoavelmente",
-                sestas: "Não", cafeina: "1 bica", cafeina_ultima_hora: "15:00",
-                atividade_fisica: "Bicicleta 10m (amadora/odivelas)",
-                deitou: "05:30", tempo_adormecer: "5", vezes_acordou: "2",
-                despertares_oque: "Logo p/ me levar", tempo_acordado_noite: "80",
-                sono_total: "10h 45min", comprimidos: "Não", alcool: "3-4 bebidas",
-                alcool_tipo: "Frita + jarra Lx", qualidade_noite: "Bem"
+            {
+                date: '2026-01-11',
+                answers: {
+                    acordou: '08:30',
+                    levantou: '08:45',
+                    como_sente_manha: 'Bem',
+                    sestas: 'Não',
+                    cafeina: '2 cafés/chás',
+                    cafeina_ultima_hora: '15:30',
+                    atividade_fisica: 'Corrida',
+                    atividade_fisica_duracao: 30,
+                    deitou: '23:00',
+                    tempo_adormecer: 15,
+                    vezes_acordou: '1',
+                    despertares_oque: 'Bebi água',
+                    tempo_acordado_noite: 5,
+                    sono_total: '8h 00min',
+                    comprimidos: 'Nenhum',
+                    alcool: 'Não bebi',
+                    qualidade_noite: 'Bem'
+                }
             },
-            "2026-01-12": {
-                acordou: "15:00", levantou: "15:30", como_sente_manha: "Mal",
-                sestas: "Não", cafeina: "1 bica", cafeina_ultima_hora: "15:00",
-                atividade_fisica: "Univ s/carro + 10 passos - caminhar",
-                deitou: "01:00", tempo_adormecer: "30", vezes_acordou: "3",
-                despertares_oque: "24:30 depois - adormecei em 3min",
-                tempo_acordado_noite: "30", sono_total: "5h 30min",
-                comprimidos: "Não", alcool: "Não bebi", qualidade_noite: "Muito bem"
+            {
+                date: '2026-01-12',
+                answers: {
+                    acordou: '10:00',
+                    levantou: '10:30',
+                    como_sente_manha: 'Muito bem',
+                    sestas: 'Sim',
+                    sestas_duracao: 20,
+                    cafeina: '3 cafés/chás',
+                    cafeina_ultima_hora: '17:00',
+                    atividade_fisica: 'Nenhuma',
+                    deitou: '01:00',
+                    tempo_adormecer: 20,
+                    vezes_acordou: '0',
+                    sono_total: '8h 30min',
+                    comprimidos: 'Nenhum',
+                    alcool: '2 bebidas',
+                    qualidade_noite: 'Bem'
+                }
             },
-            "2026-01-13": {
-                acordou: "14:30", levantou: "15:00", como_sente_manha: "Razoavelmente",
-                sestas: "Não", cafeina: "", atividade_fisica: "",
-                deitou: "03:30", tempo_adormecer: "30", vezes_acordou: "3",
-                tempo_acordado_noite: "150", sono_total: "11h 00min",
-                comprimidos: "Não", alcool: "Não bebi", qualidade_noite: "Muito bem"
+            {
+                date: '2026-01-13',
+                answers: {
+                    acordou: '08:15',
+                    levantou: '08:30',
+                    como_sente_manha: 'Razoavelmente',
+                    sestas: 'Não',
+                    cafeina: '2 cafés/chás',
+                    cafeina_ultima_hora: '14:30',
+                    atividade_fisica: 'Caminhada',
+                    atividade_fisica_duracao: 60,
+                    deitou: '23:15',
+                    tempo_adormecer: 30,
+                    vezes_acordou: '2',
+                    despertares_oque: 'Fiquei na cama a pensar',
+                    tempo_acordado_noite: 25,
+                    sono_total: '7h 15min',
+                    comprimidos: 'Nenhum',
+                    alcool: 'Não bebi',
+                    qualidade_noite: 'Razoavelmente'
+                }
             }
-        };
+        ];
         
-        // Auth state listener
         auth.onAuthStateChanged((user) => {
             if (user) {
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('logout').style.display = 'block';
-                document.getElementById('import').disabled = false;
-                document.getElementById('user-info').style.display = 'block';
-                document.getElementById('user-info').textContent = '✅ Logged in: ' + user.email;
-                document.getElementById('log').textContent = 'Pronto para importar! Clica em "Importar Dados"';
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('import-screen').classList.remove('hidden');
+                document.getElementById('user-email').textContent = user.email;
             } else {
-                document.getElementById('login').style.display = 'block';
-                document.getElementById('logout').style.display = 'none';
-                document.getElementById('import').disabled = true;
-                document.getElementById('user-info').style.display = 'none';
-                document.getElementById('log').textContent = 'Clica em "Login com Google" para começar...';
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('import-screen').classList.add('hidden');
             }
         });
         
-        document.getElementById('login').onclick = async () => {
-            try {
-                document.getElementById('log').textContent = 'A abrir popup de login...';
-                const provider = new firebase.auth.GoogleAuthProvider();
-                await auth.signInWithPopup(provider);
-            } catch (e) {
-                document.getElementById('log').textContent = '❌ Erro: ' + e.message;
-            }
-        };
+        document.getElementById('google-login').addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await auth.signInWithPopup(provider);
+        });
         
-        document.getElementById('logout').onclick = async () => {
-            await auth.signOut();
-        };
+        document.getElementById('logout').addEventListener('click', () => auth.signOut());
         
-        document.getElementById('import').onclick = async () => {
-            const log = document.getElementById('log');
-            log.textContent = 'A importar dados...\n';
+        document.getElementById('delete-btn').addEventListener('click', async () => {
+            if (!auth.currentUser) return;
+            if (!confirm('Tem a certeza que quer apagar os dados de 7-13 Janeiro?')) return;
             
-            try {
-                for (const [date, answers] of Object.entries(sleepData)) {
+            document.getElementById('log').textContent = '';
+            log('🗑️ A apagar dados antigos...\n');
+            
+            for (const entry of PAPER_DATA) {
+                try {
                     await db.collection('users').doc(auth.currentUser.uid)
-                        .collection('entries').doc(date).set({
-                            date: date,
-                            answers: answers,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    log.textContent += `✅ ${date} importado\n`;
+                        .collection('entries').doc(entry.date).delete();
+                    log(`✅ Apagado: ${entry.date}`);
+                } catch (e) {
+                    log(`⚠️ Erro ao apagar ${entry.date}: ${e.message}`);
                 }
-                log.textContent += '\n🎉 Todos os dados importados com sucesso!\n\nPodes ir para a app e ver no Histórico.';
-            } catch (e) {
-                log.textContent += '\n❌ Erro: ' + e.message;
             }
-        };
+            log('\n✅ Dados apagados!');
+        });
+        
+        document.getElementById('import-btn').addEventListener('click', async () => {
+            if (!auth.currentUser) return;
+            
+            document.getElementById('log').textContent = '';
+            log('📥 A importar dados do diário em papel...\n');
+            log(`Utilizador: ${auth.currentUser.email}\n`);
+            
+            for (const entry of PAPER_DATA) {
+                try {
+                    await db.collection('users').doc(auth.currentUser.uid)
+                        .collection('entries').doc(entry.date).set({
+                            date: entry.date,
+                            answers: entry.answers,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            importedFrom: 'paper-diary'
+                        });
+                    log(`✅ ${entry.date} importado`);
+                } catch (e) {
+                    log(`❌ Erro ${entry.date}: ${e.message}`);
+                }
+            }
+            log('\n🎉 Importação concluída!');
+            log('Pode voltar à app para ver os dados.');
+        });
     </script>
 </body>
 </html>
