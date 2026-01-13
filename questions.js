@@ -1,176 +1,142 @@
-// Questions configuration - matching your sleep diary exactly
+// Sleep Diary Questions - Matching original paper form exactly
 const QUESTIONS = [
-    // MANHÃ Section
+    // ==================== MANHÃ ====================
     {
         id: 'acordou',
         section: 'MANHÃ',
         title: 'A que horas acordou esta manhã?',
-        type: 'time',
-        required: true
+        type: 'time-picker'
     },
     {
         id: 'levantou',
         section: 'MANHÃ',
-        title: 'A que horas se levantou da cama?',
-        type: 'time',
-        required: true
+        title: 'A que horas se levantou da cama esta manhã?',
+        type: 'time-picker'
     },
     {
-        id: 'como_sente',
+        id: 'como_sente_manha',
         section: 'MANHÃ',
         title: 'Como se sente esta manhã?',
         type: 'choice',
-        options: ['Muito mal', 'Mal', 'Razoavelmente', 'Bem', 'Muito bem'],
-        required: true
+        options: ['Muito mal', 'Mal', 'Razoavelmente', 'Bem', 'Muito bem']
     },
     
-    // FATORES DIÁRIOS Section
+    // ==================== FATORES DIÁRIOS ====================
     {
         id: 'sestas',
         section: 'FATORES DIÁRIOS',
-        title: 'Fez sestas ontem?',
+        title: 'Sestas durante o dia?',
         type: 'choice',
-        options: ['Não', 'Sim'],
-        required: true,
-        followUp: 'sestas_detalhes'
+        options: ['Não', 'Sim']
     },
     {
-        id: 'sestas_detalhes',
+        id: 'sestas_duracao',
         section: 'FATORES DIÁRIOS',
-        title: 'Detalhes das sestas',
-        subtitle: 'Horas e duração (ex: 14h, 30min)',
+        title: 'Duração da(s) sesta(s)',
+        subtitle: 'Ex: 30min, 1h, etc.',
         type: 'text',
-        required: false,
         condition: { field: 'sestas', value: 'Sim' }
     },
     {
         id: 'cafeina',
         section: 'FATORES DIÁRIOS',
-        title: 'Ingeriu cafeína ontem?',
-        subtitle: 'Café, chá, etc.',
-        type: 'choice',
-        options: ['Não', 'Sim'],
-        required: true,
-        followUp: 'cafeina_detalhes'
+        title: 'Ingestão de Cafeína (chás, cafés, etc)',
+        subtitle: 'Tipo e quantidade. Ex: 2 bicas, 1 chá',
+        type: 'text'
     },
     {
-        id: 'cafeina_detalhes',
+        id: 'cafeina_ultima_hora',
         section: 'FATORES DIÁRIOS',
-        title: 'Detalhes da cafeína',
-        subtitle: 'Tipo, quantidade e última hora (ex: 2 bicas, última às 14h)',
-        type: 'text',
-        required: false,
-        condition: { field: 'cafeina', value: 'Sim' }
+        title: 'Última hora de consumo de cafeína',
+        type: 'time-picker',
+        condition: { field: 'cafeina', value: (v) => v && v.length > 0 }
     },
     {
         id: 'atividade_fisica',
         section: 'FATORES DIÁRIOS',
-        title: 'Fez atividade física ontem?',
-        type: 'choice',
-        options: ['Não', 'Sim'],
-        required: true,
-        followUp: 'atividade_fisica_detalhes'
-    },
-    {
-        id: 'atividade_fisica_detalhes',
-        section: 'FATORES DIÁRIOS',
-        title: 'Detalhes da atividade física',
-        subtitle: 'Tipo e duração (ex: Caminhada 30min)',
-        type: 'text',
-        required: false,
-        condition: { field: 'atividade_fisica', value: 'Sim' }
+        title: 'Atividade Física',
+        subtitle: 'Tipo e duração. Ex: Corrida 30min, Bicicleta 1h',
+        type: 'text'
     },
     
-    // NOITE Section
+    // ==================== NOITE ====================
     {
         id: 'deitou',
         section: 'NOITE',
-        title: 'A que horas se deitou ontem à noite?',
-        type: 'time',
-        required: true
+        title: 'A que horas se deitou na noite passada?',
+        type: 'time-picker'
     },
     {
-        id: 'adormecer',
+        id: 'tempo_adormecer',
         section: 'NOITE',
         title: 'Quanto tempo demorou a adormecer?',
-        type: 'choice',
-        options: ['Imediato (< 5 min)', '5-15 minutos', '15-30 minutos', '30-60 minutos', 'Mais de 1 hora'],
-        required: true
+        subtitle: 'Em minutos',
+        type: 'duration-picker'
     },
     {
-        id: 'acordou_noite',
+        id: 'vezes_acordou',
         section: 'NOITE',
-        title: 'Acordou durante a noite?',
+        title: 'Quantas vezes acordou durante a noite?',
         type: 'choice',
-        options: ['Não', 'Sim, 1 vez', 'Sim, 2-3 vezes', 'Sim, mais de 3 vezes'],
-        required: true
+        options: ['0', '1', '2', '3', '4', '5+']
     },
     {
-        id: 'acordou_noite_detalhes',
+        id: 'despertares_oque',
         section: 'NOITE',
-        title: 'O que fez durante os despertares?',
+        title: 'O que fez durante os despertares noturnos?',
+        subtitle: 'Ex: fui à casa de banho, olhei o telemóvel, etc.',
         type: 'text',
-        required: false,
-        condition: { field: 'acordou_noite', value: (v) => v !== 'Não' }
+        condition: { field: 'vezes_acordou', value: (v) => v && v !== '0' }
+    },
+    {
+        id: 'tempo_acordado_noite',
+        section: 'NOITE',
+        title: 'Quanto tempo esteve acordado durante a noite?',
+        subtitle: 'Total em minutos',
+        type: 'duration-picker',
+        condition: { field: 'vezes_acordou', value: (v) => v && v !== '0' }
     },
     {
         id: 'sono_total',
         section: 'NOITE',
-        title: 'Quanto tempo dormiu no total?',
-        subtitle: 'Estimativa em horas',
-        type: 'choice',
-        options: ['Menos de 4h', '4-5h', '5-6h', '6-7h', '7-8h', '8-9h', 'Mais de 9h'],
-        required: true
+        title: 'Quanto tempo dormiu ao todo?',
+        subtitle: 'Em horas e minutos',
+        type: 'sleep-duration-picker'
     },
     {
         id: 'comprimidos',
         section: 'NOITE',
         title: 'Tomou comprimidos para dormir?',
         type: 'choice',
-        options: ['Não', 'Sim'],
-        required: true,
-        followUp: 'comprimidos_detalhes'
+        options: ['Não', 'Sim']
     },
     {
-        id: 'comprimidos_detalhes',
+        id: 'comprimidos_quais',
         section: 'NOITE',
-        title: 'Quais e quantos?',
+        title: 'Que comprimidos tomou? Quantos?',
         type: 'text',
-        required: false,
         condition: { field: 'comprimidos', value: 'Sim' }
     },
     {
         id: 'alcool',
         section: 'NOITE',
-        title: 'Ingeriu bebidas alcoólicas ontem?',
+        title: 'Bebidas alcoólicas na noite passada?',
         type: 'choice',
-        options: ['Não', 'Sim'],
-        required: true,
-        followUp: 'alcool_detalhes'
+        options: ['Não bebi', '1-2 bebidas', '3-4 bebidas', '5+ bebidas']
     },
     {
-        id: 'alcool_detalhes',
+        id: 'alcool_tipo',
         section: 'NOITE',
-        title: 'Detalhes do álcool',
-        subtitle: 'Tipo e quantidade (ex: 2 cervejas)',
+        title: 'Que bebidas?',
+        subtitle: 'Ex: 2 cervejas, 1 copo de vinho',
         type: 'text',
-        required: false,
-        condition: { field: 'alcool', value: 'Sim' }
+        condition: { field: 'alcool', value: (v) => v && v !== 'Não bebi' }
     },
     {
         id: 'qualidade_noite',
         section: 'NOITE',
         title: 'Como acha que passou a noite?',
         type: 'choice',
-        options: ['Muito mal', 'Mal', 'Razoavelmente', 'Bem', 'Muito bem'],
-        required: true
-    },
-    {
-        id: 'notas',
-        section: 'NOTAS',
-        title: 'Notas adicionais',
-        subtitle: 'Algo mais que queira registar? (opcional)',
-        type: 'text',
-        required: false
+        options: ['Muito mal', 'Mal', 'Razoavelmente', 'Bem', 'Muito bem']
     }
 ];
