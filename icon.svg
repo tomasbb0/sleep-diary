@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f0e6"/>
+      <stop offset="100%" style="stop-color:#e8dcc8"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="96" fill="url(#bg)"/>
+  
+  <!-- Moon crescent -->
+  <circle cx="96" cy="96" r="55" fill="url(#moon)"/>
+  <circle cx="120" cy="76" r="45" fill="url(#bg)"/>
+  
+  <!-- Stars -->
+  <circle cx="145" cy="55" r="4" fill="#f5f0e6" opacity="0.9"/>
+  <circle cx="130" cy="130" r="3" fill="#f5f0e6" opacity="0.7"/>
+  <circle cx="155" cy="100" r="2.5" fill="#f5f0e6" opacity="0.8"/>
+  <circle cx="50" cy="50" r="3" fill="#f5f0e6" opacity="0.6"/>
+  <circle cx="45" cy="140" r="2" fill="#f5f0e6" opacity="0.5"/>
+  
+  <!-- Z's for sleep -->
+  <text x="150" y="45" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#f5f0e6" opacity="0.6">z</text>
+  <text x="160" y="35" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#f5f0e6" opacity="0.4">z</text>
+  <text x="168" y="28" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#f5f0e6" opacity="0.3">z</text>
+</svg>

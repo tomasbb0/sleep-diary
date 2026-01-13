@@ -1,0 +1,24 @@
+{
+  "name": "Diário de Sono",
+  "short_name": "Sono",
+  "description": "Registo diário do sono para acompanhamento de saúde",
+  "start_url": "/sleep-diary/",
+  "display": "standalone",
+  "background_color": "#f5f0e6",
+  "theme_color": "#6b5b47",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
