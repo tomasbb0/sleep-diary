@@ -51,6 +51,19 @@ body {
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
+    margin-bottom: 0.75rem;
+}
+
+#apple-login {
+    width: 100%;
+    padding: 0.875rem;
+    background: #000;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
     margin-bottom: 1rem;
 }
 
@@ -223,6 +236,12 @@ body {
     background: var(--primary);
     border-color: var(--primary);
     color: white;
+}
+
+/* Multi-select options indicator */
+.options.multi .option.selected {
+    background: var(--accent);
+    border-color: var(--accent);
 }
 
 /* Text Input */
