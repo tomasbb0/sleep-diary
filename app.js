@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==================== AUTH ====================
 
 function initAuth() {
+    // Google Login
     document.getElementById('google-login').addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -30,6 +31,19 @@ function initAuth() {
         }
     });
 
+    // Apple Login
+    document.getElementById('apple-login').addEventListener('click', async () => {
+        try {
+            const provider = new firebase.auth.OAuthProvider('apple.com');
+            provider.addScope('email');
+            provider.addScope('name');
+            await auth.signInWithPopup(provider);
+        } catch (error) {
+            showAuthError(error.message);
+        }
+    });
+
+    // Email Login
     document.getElementById('email-login').addEventListener('click', async () => {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -41,6 +55,7 @@ function initAuth() {
         }
     });
 
+    // Email Signup
     document.getElementById('email-signup').addEventListener('click', async () => {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -53,8 +68,10 @@ function initAuth() {
         }
     });
 
+    // Logout
     document.getElementById('logout').addEventListener('click', () => auth.signOut());
 
+    // Auth State Observer
     auth.onAuthStateChanged((user) => {
         currentUser = user;
         if (user) {
@@ -216,6 +233,15 @@ function renderQuestions() {
                     </button>
                 `).join('')}
             </div>`;
+        } else if (q.type === 'choice-multi') {
+            const selected = answers[q.id] || [];
+            inputHtml = `<div class="options multi">
+                ${q.options.map(opt => `
+                    <button class="option ${selected.includes(opt) ? 'selected' : ''}" data-value="${opt}">
+                        ${opt}
+                    </button>
+                `).join('')}
+            </div>`;
         } else if (q.type === 'time-picker') {
             const val = answers[q.id] || '12:00';
             const [h, m] = val.split(':');
@@ -243,7 +269,6 @@ function renderQuestions() {
         container.appendChild(questionEl);
     });
     
-    // Add event listeners
     addQuestionListeners(container);
     
     currentQuestionIndex = 0;
@@ -252,8 +277,8 @@ function renderQuestions() {
 }
 
 function addQuestionListeners(container) {
-    // Choice options
-    container.querySelectorAll('.option').forEach(opt => {
+    // Single choice options
+    container.querySelectorAll('.options:not(.multi) .option').forEach(opt => {
         opt.addEventListener('click', (e) => {
             const questionEl = e.target.closest('.question');
             const questionIndex = parseInt(questionEl.dataset.index);
@@ -273,6 +298,23 @@ function addQuestionListeners(container) {
         });
     });
     
+    // Multi choice options
+    container.querySelectorAll('.options.multi .option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            const questionEl = e.target.closest('.question');
+            const questionIndex = parseInt(questionEl.dataset.index);
+            const question = visibleQuestions[questionIndex];
+            
+            e.target.classList.toggle('selected');
+            
+            const selected = [];
+            questionEl.querySelectorAll('.option.selected').forEach(o => {
+                selected.push(o.dataset.value);
+            });
+            answers[question.id] = selected;
+        });
+    });
+    
     // Text inputs
     container.querySelectorAll('.text-input').forEach(input => {
         input.addEventListener('change', (e) => {
@@ -284,7 +326,7 @@ function addQuestionListeners(container) {
     });
     
     // Initialize all pickers
-    container.querySelectorAll('.wheel-picker').forEach(picker => {
+    container.querySelectorAll('.picker-container').forEach(picker => {
         initWheelPicker(picker);
     });
 }
@@ -296,14 +338,15 @@ function createTimePicker(id, hours, minutes) {
         `<div class="wheel-item ${i === hours ? 'selected' : ''}" data-value="${i}">${String(i).padStart(2, '0')}</div>`
     ).join('');
     
-    const minOptions = Array.from({length: 60}, (_, i) => 
-        `<div class="wheel-item ${i === minutes ? 'selected' : ''}" data-value="${i}">${String(i).padStart(2, '0')}</div>`
-    ).join('');
+    const minOptions = Array.from({length: 12}, (_, i) => {
+        const m = i * 5;
+        return `<div class="wheel-item ${m === minutes || (minutes > m && minutes < m + 5) ? 'selected' : ''}" data-value="${m}">${String(m).padStart(2, '0')}</div>`;
+    }).join('');
     
     return `
         <div class="picker-container" data-id="${id}" data-type="time">
             <div class="picker-display">
-                <span class="picker-value">${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}</span>
+                <span class="picker-value">${String(hours).padStart(2, '0')}:${String(Math.floor(minutes/5)*5).padStart(2, '0')}</span>
             </div>
             <div class="wheel-picker-modal hidden">
                 <div class="wheel-picker-content">
@@ -386,8 +429,7 @@ function createSleepDurationPicker(id, hours, minutes) {
     `;
 }
 
-function initWheelPicker(picker) {
-    const container = picker.closest('.picker-container');
+function initWheelPicker(container) {
     const display = container.querySelector('.picker-display');
     const modal = container.querySelector('.wheel-picker-modal');
     const cancel = container.querySelector('.picker-cancel');
@@ -395,10 +437,8 @@ function initWheelPicker(picker) {
     const type = container.dataset.type;
     const id = container.dataset.id;
     
-    // Open picker
     display.addEventListener('click', () => {
         modal.classList.remove('hidden');
-        // Scroll to selected items
         container.querySelectorAll('.wheel-scroll').forEach(scroll => {
             const selected = scroll.querySelector('.selected');
             if (selected) {
@@ -407,10 +447,8 @@ function initWheelPicker(picker) {
         });
     });
     
-    // Cancel
     cancel.addEventListener('click', () => modal.classList.add('hidden'));
     
-    // Done
     done.addEventListener('click', () => {
         let value;
         if (type === 'time') {
@@ -431,7 +469,6 @@ function initWheelPicker(picker) {
         modal.classList.add('hidden');
     });
     
-    // Scroll snap
     container.querySelectorAll('.wheel-scroll').forEach(scroll => {
         scroll.addEventListener('scroll', debounce(() => {
             const items = scroll.querySelectorAll('.wheel-item');
@@ -527,7 +564,7 @@ async function loadHistory() {
             item.innerHTML = `
                 <div class="history-date">${dateStr}</div>
                 <div class="history-summary">
-                    <span>�� ${a.sono_total || '—'}</span>
+                    <span>😴 ${a.sono_total || '—'}</span>
                     <span>🛏️ ${a.deitou || '—'}</span>
                     <span>⏰ ${a.acordou || '—'}</span>
                     <span>${getEmoji(a.qualidade_noite)} ${a.qualidade_noite || '—'}</span>
@@ -562,7 +599,10 @@ document.getElementById('export-data').addEventListener('click', async () => {
         const entries = [];
         snapshot.forEach(doc => entries.push(doc.data()));
         const headers = ['Data', ...QUESTIONS.map(q => q.title)];
-        const rows = entries.map(e => [e.date, ...QUESTIONS.map(q => e.answers?.[q.id] || '')]);
+        const rows = entries.map(e => [e.date, ...QUESTIONS.map(q => {
+            const val = e.answers?.[q.id];
+            return Array.isArray(val) ? val.join('; ') : (val || '');
+        })]);
         const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
