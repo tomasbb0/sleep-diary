@@ -17,6 +17,7 @@ const UNLOCK_MINUTE = 30;
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing...');
     initAuth();
     initTabs();
     initNewSession();
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ==================== AUTH ====================
 function initAuth() {
+    console.log('Setting up Google login');
     document.getElementById('google-login').addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
