@@ -162,6 +162,18 @@ function initAuth() {
 
     document.getElementById('logout').addEventListener('click', () => auth.signOut());
 
+    // Handle redirect result for PWA auth (must be called on page load)
+    if (isStandalonePWA()) {
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                console.log('Redirect auth successful:', result.user.email);
+            }
+        }).catch((error) => {
+            console.error('Redirect auth error:', error);
+            showAuthError(error.message);
+        });
+    }
+
     auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         if (user) {
@@ -300,14 +312,31 @@ function calculateCompletion(answers) {
     const required = getRequiredQuestions(answers);
     const answered = required.filter(q => {
         const val = answers[q.id];
+        // Check for number 0 as valid answer
+        if (typeof val === 'number') return true;
         return val !== undefined && val !== null && val !== '';
     });
+    
+    // Debug logging
+    console.log('Completion check:', {
+        totalQuestions: QUESTIONS.length,
+        requiredQuestions: required.length,
+        answeredCount: answered.length,
+        answersKeys: Object.keys(answers),
+        missing: required.filter(q => {
+            const val = answers[q.id];
+            if (typeof val === 'number') return false;
+            return val === undefined || val === null || val === '';
+        }).map(q => q.id)
+    });
+    
     return {
         total: required.length,
         completed: answered.length,
         percentage: Math.round((answered.length / required.length) * 100),
         missing: required.filter(q => {
             const val = answers[q.id];
+            if (typeof val === 'number') return false;
             return val === undefined || val === null || val === '';
         })
     };
