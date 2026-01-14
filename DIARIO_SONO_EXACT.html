@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Diário de Sono</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 9px;
+            margin: 0;
+            padding: 10px;
+            background-color: #f5f0e6;
+        }
+        h1 {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 4px 6px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 8px;
+        }
+        th {
+            background-color: #f0f0f0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .section-header {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        .row-label {
+            font-weight: bold;
+            width: 200px;
+            background-color: #fafafa;
+        }
+        .day-col {
+            width: 100px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Diário de Sono</h1>
+    
+    <table>
+        <!-- HEADER ROW -->
+        <tr>
+            <th></th>
+            <th class="day-col">4ªf<br>7/1/26</th>
+            <th class="day-col">5ªf<br>8/1/26</th>
+            <th class="day-col">6ªf<br>9/1/26</th>
+            <th class="day-col">Sábado<br>10/1/26</th>
+            <th class="day-col">Domingo<br>11/1/26</th>
+            <th class="day-col">2ªf<br>12/1/26</th>
+            <th class="day-col">3ªf<br>13/1/26</th>
+        </tr>
+        
+        <!-- MANHÃ SECTION -->
+        <tr>
+            <td colspan="8" class="section-header">MANHÃ</td>
+        </tr>
+        <tr>
+            <td class="row-label">A que horas acordou esta manhã?</td>
+            <td>15.00</td>
+            <td>8h30 (fui c/ carmo ao hospital)</td>
+            <td>15h.</td>
+            <td>12:30m</td>
+            <td>06.45m.</td>
+            <td>15h.</td>
+            <td>14:30</td>
+        </tr>
+        <tr>
+            <td class="row-label">A que horas se levantou da cama esta manhã?</td>
+            <td>15.30</td>
+            <td>8.40m</td>
+            <td>15:30 Fui farmácia</td>
+            <td>13h15m</td>
+            <td>11h.00 (brunch da carmo)</td>
+            <td>15.30</td>
+            <td>15:00 mãe insistiu</td>
+        </tr>
+        <tr>
+            <td class="row-label">Como se sente esta manhã?<br><small>(Muito mal / Mal / Razoavelmente / Bem / Muito bem)</small></td>
+            <td>Mal ✗</td>
+            <td>Mal ✗</td>
+            <td>Mal ✗</td>
+            <td>Mal ✗</td>
+            <td>Mal ✗</td>
+            <td>Mal ✗</td>
+            <td>Razoavelmente ✗</td>
+        </tr>
+        
+        <!-- FATORES DIÁRIOS SECTION -->
+        <tr>
+            <td colspan="8" class="section-header">FATORES DIÁRIOS</td>
+        </tr>
+        <tr>
+            <td class="row-label">Sestas durante o dia (Sim/Não)<br>- Se sim, duração:</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>Muita</td>
+            <td>14/15h. (carro) 30min<br>16:30h (rede museu) 15min</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Ingestão de Cafeína (chás, cafés, etc)<br>- Tipo e quantidade</td>
+            <td>—</td>
+            <td>Sim</td>
+            <td>1.</td>
+            <td>1 - amoreiras</td>
+            <td>1 - (amoreiras)</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">- Última hora de Consumo</td>
+            <td>—</td>
+            <td>2 Bica - 14h</td>
+            <td>1 Bica 14h</td>
+            <td>—</td>
+            <td>15.30m</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Atividade Física (tipo e duração)</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>Caminhada</td>
+            <td>Bicicleta 10m<br>(Amoreiras à Gulbenkian)</td>
+            <td>Única refeição foi o jantar</td>
+            <td>—</td>
+        </tr>
+        
+        <!-- NOITE SECTION -->
+        <tr>
+            <td colspan="8" class="section-header">NOITE</td>
+        </tr>
+        <tr>
+            <td class="row-label">A que horas se deitou na noite passada?</td>
+            <td>4h00<br>1.00</td>
+            <td>5h, depois de ter bebido 1 copo c amigo</td>
+            <td>5h</td>
+            <td>5h.00<br>(retiro a v. ritmo)</td>
+            <td>5.30</td>
+            <td>1h am</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Quanto tempo demorou a adormecer? (em minutos)</td>
+            <td>logo pq estava cheio de sono</td>
+            <td>logo pq estava cheio de sono</td>
+            <td>logo pq estava cheio de sono</td>
+            <td>logo pq estava cheio de sono</td>
+            <td>logo pq estava cheio de sono</td>
+            <td>logo pq estava cheio de sono</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Quantas vezes acordou durante a noite?</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">O que fez durante os despertares noturnos?</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Quanto tempo esteve acordado durante a noite? (total em minutos)</td>
+            <td colspan="7" style="text-align: center; font-style: italic;">Não acordei a meio da noite, mas estive acordado até à hora que escrevi deitar-me na célula acima</td>
+        </tr>
+        <tr>
+            <td class="row-label">Quanto tempo dormiu ao todo? (em horas/minutos)</td>
+            <td>4h<br>(04:00-08:30)</td>
+            <td>10h.<br>(05:00-15:00)</td>
+            <td>8h30<br>(04:00-12:15)</td>
+            <td>6h45<br>(05:00-10:45)</td>
+            <td>9h30<br>(05:30-15:00)</td>
+            <td>11h<br>(03:00-14:30)</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Que comprimidos tomou para dormir na noite passada? Quantos?</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Que quantidade de bebidas alcoólicas ingeriu na noite passada?</td>
+            <td>—</td>
+            <td>2 cervejas</td>
+            <td>Cappriciosa jantar, mas não bebi</td>
+            <td>Festa + jantar lx<br>3 cervejas</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+        <tr>
+            <td class="row-label">Como acha que passou a noite?<br><small>(Muito mal / Mal / Razoavelmente / Bem / Muito bem)</small></td>
+            <td>Muito bem ✗</td>
+            <td>Muito bem ✗</td>
+            <td>Muito bem ✗</td>
+            <td>Muito bem ✗</td>
+            <td>Muito bem ✗</td>
+            <td>Muito bem ✗</td>
+            <td>Muito bem ✗</td>
+        </tr>
+    </table>
+    
+    <p style="text-align: right; font-size: 8px; margin-top: 10px;">Gerado a 13 de Janeiro de 2026</p>
+</body>
+</html>

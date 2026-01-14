@@ -445,32 +445,17 @@ function getNextUnlockTime() {
 }
 
 function formatDatePT(dateStr) {
+    if (!dateStr) return 'data desconhecida';
     const date = new Date(dateStr + 'T12:00:00');
+    if (isNaN(date.getTime())) return 'data inválida';
     return date.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
 }
 
 function formatDateLong(dateStr) {
+    if (!dateStr) return 'data desconhecida';
     const date = new Date(dateStr + 'T12:00:00');
+    if (isNaN(date.getTime())) return 'data inválida';
     return date.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' });
-}
-
-function formatSessionRange(nightDate) {
-    // nightDate is the date when sleep started (e.g., 13 Jan)
-    // Morning is the next day (e.g., 14 Jan)
-    const night = new Date(nightDate + 'T12:00:00');
-    const morning = new Date(night);
-    morning.setDate(morning.getDate() + 1);
-    
-    const weekdays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-    const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    
-    const nightDay = weekdays[night.getDay()];
-    const morningDay = weekdays[morning.getDay()];
-    const nightNum = night.getDate();
-    const morningNum = morning.getDate();
-    const month = months[morning.getMonth()];
-    
-    return `${nightDay} → ${morningDay}, ${nightNum}/${morningNum} ${month}`;
 }
 
 function formatSessionRange(nightDate) {
