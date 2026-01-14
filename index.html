@@ -73,31 +73,41 @@
         <!-- New Session Tab -->
         <div id="new-session-tab" class="tab-content active">
             <div id="session-available" class="session-box">
-                <div class="session-icon">
-                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="4"/>
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-                    </svg>
+                <div class="streak-display" id="streak-display">
+                    <span class="streak-fire">🔥</span>
+                    <span class="streak-number" id="streak-count">0</span>
+                    <span class="streak-label">dias</span>
                 </div>
                 <h2>Bom Dia!</h2>
                 <p class="session-subtitle">Registe como dormiu esta noite</p>
                 <button id="start-session" class="btn-primary">Começar Registo</button>
-                <div class="next-session-info">
-                    <p class="next-session-label">Próximo registo disponível em:</p>
-                    <div id="next-countdown" class="countdown-small">--:--:--</div>
+                <div class="streak-countdown">
+                    <div class="streak-timer">
+                        <span class="streak-timer-icon">⏰</span>
+                        <span id="streak-time" class="streak-time">--:--:--</span>
+                    </div>
+                    <p class="streak-warning" id="streak-warning">para manter o streak!</p>
                 </div>
             </div>
             
             <div id="session-locked" class="session-box hidden">
-                <div class="session-icon">
-                    <svg width="44" height="44" viewBox="0 0 24 24" fill="white" stroke="none">
-                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-                    </svg>
+                <div class="streak-display streak-success" id="streak-display-locked">
+                    <span class="streak-fire">🔥</span>
+                    <span class="streak-number" id="streak-count-locked">0</span>
+                    <span class="streak-label">dias</span>
                 </div>
-                <h2>Registo Completo!</h2>
-                <p class="session-subtitle">Próximo registo disponível em:</p>
-                <div id="countdown" class="countdown">--:--:--</div>
-                <p class="countdown-note">Disponível às 04:30</p>
+                <h2>Streak Mantido! ✓</h2>
+                <p class="session-subtitle">Volta amanhã para continuar</p>
+                <div class="streak-countdown">
+                    <div class="streak-timer">
+                        <span class="streak-timer-icon">🌙</span>
+                        <span id="next-session-time" class="streak-time">--:--:--</span>
+                    </div>
+                    <p class="streak-note">até ao próximo registo</p>
+                </div>
+                <div class="streak-record" id="streak-record">
+                    Recorde: <span id="best-streak">0</span> dias
+                </div>
             </div>
             
             <div id="session-form" class="hidden">

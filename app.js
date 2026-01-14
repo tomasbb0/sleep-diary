@@ -9,6 +9,7 @@ let editQuestionIndex = 0;
 let editingDate = null;
 let existingDates = new Set();
 let countdownInterval = null;
+let streakData = { current: 0, best: 0, lastDate: null };
 
 // Unlock time: 4:30 AM
 const UNLOCK_HOUR = 4;
@@ -73,7 +74,7 @@ function initAuth() {
         currentUser = user;
         if (user) {
             showScreen('app');
-            loadExistingDates();
+            loadExistingDates().then(() => loadStreakData());
             checkSessionAvailability();
         } else {
             showScreen('auth');
@@ -167,6 +168,45 @@ async function loadExistingDates() {
     }
 }
 
+async function loadStreakData() {
+    if (!currentUser) return;
+    try {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if (doc.exists && doc.data().streak) {
+            streakData = doc.data().streak;
+        }
+    } catch (e) {
+        console.error('Error loading streak:', e);
+    }
+}
+
+async function saveStreakData() {
+    if (!currentUser) return;
+    try {
+        await db.collection('users').doc(currentUser.uid).set({ streak: streakData }, { merge: true });
+    } catch (e) {
+        console.error('Error saving streak:', e);
+    }
+}
+
+function updateStreakDisplay() {
+    // Update all streak displays
+    const elements = ['streak-count', 'streak-count-locked'];
+    elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = streakData.current;
+    });
+    
+    const bestEl = document.getElementById('best-streak');
+    if (bestEl) bestEl.textContent = streakData.best;
+    
+    // Update display state based on streak
+    const displays = document.querySelectorAll('.streak-display');
+    displays.forEach(d => {
+        d.classList.toggle('streak-lost', streakData.current === 0);
+    });
+}
+
 function checkSessionAvailability() {
     const sessionDate = getSessionDate();
     const hasEntry = existingDates.has(sessionDate);
@@ -175,7 +215,7 @@ function checkSessionAvailability() {
     document.getElementById('session-locked').classList.toggle('hidden', !hasEntry);
     document.getElementById('session-form').classList.add('hidden');
     
-    // Always start countdown (shows next session time in both states)
+    updateStreakDisplay();
     startCountdown();
 }
 
@@ -192,7 +232,15 @@ function updateCountdown() {
     
     if (diff <= 0) {
         if (countdownInterval) clearInterval(countdownInterval);
-        loadExistingDates().then(() => checkSessionAvailability());
+        // Check if streak should be lost (no entry for current session)
+        const sessionDate = getSessionDate();
+        if (!existingDates.has(sessionDate) && streakData.current > 0) {
+            streakData.current = 0;
+            saveStreakData();
+        }
+        loadExistingDates().then(() => {
+            loadStreakData().then(() => checkSessionAvailability());
+        });
         return;
     }
     
@@ -202,12 +250,55 @@ function updateCountdown() {
     
     const timeStr = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     
-    // Update both countdown displays
-    const mainCountdown = document.getElementById('countdown');
-    const nextCountdown = document.getElementById('next-countdown');
+    // Update countdown displays
+    const streakTime = document.getElementById('streak-time');
+    const nextSessionTime = document.getElementById('next-session-time');
     
-    if (mainCountdown) mainCountdown.textContent = timeStr;
-    if (nextCountdown) nextCountdown.textContent = timeStr;
+    if (streakTime) streakTime.textContent = timeStr;
+    if (nextSessionTime) nextSessionTime.textContent = timeStr;
+    
+    // Update warning text based on urgency
+    const warning = document.getElementById('streak-warning');
+    if (warning) {
+        if (hours < 2) {
+            warning.classList.add('urgent');
+            warning.textContent = '⚠️ Rápido! O streak vai acabar!';
+        } else {
+            warning.classList.remove('urgent');
+            warning.textContent = 'para manter o streak!';
+        }
+    }
+}
+
+function incrementStreak() {
+    const today = getSessionDate();
+    const yesterday = getPrevDate(today);
+    
+    // Check if this continues the streak or starts new one
+    if (streakData.lastDate === yesterday) {
+        // Continuing streak
+        streakData.current++;
+    } else if (streakData.lastDate !== today) {
+        // Starting new streak (or first entry ever)
+        streakData.current = 1;
+    }
+    // If lastDate === today, already counted, do nothing
+    
+    streakData.lastDate = today;
+    
+    // Update best streak
+    if (streakData.current > streakData.best) {
+        streakData.best = streakData.current;
+    }
+    
+    saveStreakData();
+    updateStreakDisplay();
+}
+
+function getPrevDate(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
 }
 
 function startNewSession() {
@@ -246,6 +337,7 @@ async function saveNewEntry() {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         existingDates.add(sessionDate);
+        incrementStreak();
         checkSessionAvailability();
     } catch (e) {
         console.error('Error saving:', e);
@@ -286,7 +378,7 @@ async function loadHistory() {
         const snapshot = await db.collection('users').doc(currentUser.uid)
             .collection('entries').orderBy('date', 'desc').limit(60).get();
         
-        await loadExistingDates();
+        await loadExistingDates().then(() => loadStreakData());
         
         if (snapshot.empty) {
             list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>Ainda não há registos.</p></div>`;
