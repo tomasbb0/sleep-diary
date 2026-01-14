@@ -18,19 +18,10 @@ const UNLOCK_HOUR = 4;
 const UNLOCK_MINUTE = 30;
 
 // ==================== INIT ====================
+let splashComplete = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing...');
-    
-    // Splash animation: show for 1.5s, then zoom moon and fade to white
-    setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-            splash.classList.add('zoom-out');
-            setTimeout(() => {
-                splash.classList.add('hidden');
-            }, 600);
-        }
-    }, 1500);
     
     initAuth();
     initTabs();
@@ -83,15 +74,40 @@ document.addEventListener('DOMContentLoaded', () => {
             forceRefresh();
         });
     }
+    
+    // Edit name button
+    const editNameBtn = document.getElementById('edit-name');
+    if (editNameBtn) {
+        editNameBtn.addEventListener('click', () => {
+            // Pre-fill with current name if exists
+            const nameInput = document.getElementById('name-input');
+            if (nameInput && userName) {
+                nameInput.value = userName;
+            }
+            showNameModal();
+        });
+    }
 });
 
 // ==================== AUTH ====================
+// Check if running as standalone PWA (iOS home screen)
+function isStandalonePWA() {
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           window.navigator.standalone === true;
+}
+
 function initAuth() {
-    console.log('Setting up Google login');
+    console.log('Setting up auth, standalone PWA:', isStandalonePWA());
+    
     document.getElementById('google-login').addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
-            await auth.signInWithPopup(provider);
+            // Use redirect for PWA (popups don't work), popup for browser
+            if (isStandalonePWA()) {
+                await auth.signInWithRedirect(provider);
+            } else {
+                await auth.signInWithPopup(provider);
+            }
         } catch (error) {
             showAuthError(error.message);
         }
@@ -102,7 +118,12 @@ function initAuth() {
             const provider = new firebase.auth.OAuthProvider('apple.com');
             provider.addScope('email');
             provider.addScope('name');
-            await auth.signInWithPopup(provider);
+            // Use redirect for PWA (popups don't work), popup for browser
+            if (isStandalonePWA()) {
+                await auth.signInWithRedirect(provider);
+            } else {
+                await auth.signInWithPopup(provider);
+            }
         } catch (error) {
             showAuthError(error.message);
         }
@@ -137,13 +158,15 @@ function initAuth() {
         currentUser = user;
         if (user) {
             await loadUserName();
-            showScreen('app');
             
-            // Show welcome back for returning users
+            // Handle splash screen with welcome back if returning user
             if (isReturningUser && userName) {
-                showWelcomeBack();
-                isReturningUser = false;
+                showWelcomeBackSplash();
+            } else {
+                finishSplash();
             }
+            
+            showScreen('app');
             
             loadExistingDates().then(() => {
                 loadStreakData().then(() => checkSessionAvailability());
@@ -158,18 +181,13 @@ function initAuth() {
 // ==================== USER NAME ====================
 async function loadUserName() {
     try {
-        // First try Firestore
+        // Only use name from Firestore that was manually set by user
         const doc = await db.collection('users').doc(currentUser.uid).get();
-        if (doc.exists && doc.data().name) {
+        if (doc.exists && doc.data().name && doc.data().nameManuallySet) {
             userName = doc.data().name;
             isReturningUser = true;
-        } else if (currentUser.displayName) {
-            // Fall back to Firebase auth display name
-            userName = currentUser.displayName;
-            await saveUserName(userName);
-            isReturningUser = true;
         } else {
-            // No name found - will be handled by pending updates system
+            // No manually set name - will be handled by pending updates system
             userName = null;
             isReturningUser = false;
         }
@@ -177,7 +195,7 @@ async function loadUserName() {
         checkPendingUpdates(); // Check if there are pending updates to show banner
     } catch (error) {
         console.error('Error loading user name:', error);
-        userName = currentUser.displayName || null;
+        userName = null;
         updateGreeting();
         checkPendingUpdates();
     }
@@ -187,7 +205,8 @@ async function saveUserName(name) {
     try {
         await db.collection('users').doc(currentUser.uid).set({
             name: name,
-            email: currentUser.email
+            email: currentUser.email,
+            nameManuallySet: true  // Flag to indicate user manually set this name
         }, { merge: true });
         userName = name;
         updateGreeting();
@@ -217,16 +236,42 @@ function hideNameModal() {
     }
 }
 
-function showWelcomeBack() {
-    const welcome = document.getElementById('welcome-splash');
-    const nameEl = document.getElementById('welcome-name');
-    if (welcome && nameEl && userName) {
-        nameEl.textContent = userName;
-        welcome.classList.remove('hidden');
+function showWelcomeBackSplash() {
+    const splash = document.getElementById('splash-screen');
+    const titleEl = document.getElementById('splash-title');
+    const subtitleEl = document.getElementById('splash-subtitle');
+    
+    if (splash && titleEl && subtitleEl && userName) {
+        // Update text for welcome back
+        titleEl.textContent = 'Bem-vindo de volta,';
+        subtitleEl.textContent = userName;
+        subtitleEl.classList.add('welcome-name-style');
+        
+        // Show for 1.5s, then zoom out
         setTimeout(() => {
-            welcome.classList.add('fade-out');
-            setTimeout(() => welcome.classList.add('hidden'), 500);
+            splash.classList.add('zoom-out');
+            // Wait for animation to complete (1.8s) + buffer, then hide splash
+            setTimeout(() => {
+                splash.classList.add('hidden');
+                splashComplete = true;
+            }, 2000);
         }, 1500);
+    } else {
+        finishSplash();
+    }
+}
+
+function finishSplash() {
+    const splash = document.getElementById('splash-screen');
+    if (splash && !splashComplete) {
+        // Simple fade out for non-returning users
+        setTimeout(() => {
+            splash.classList.add('zoom-out');
+            setTimeout(() => {
+                splash.classList.add('hidden');
+                splashComplete = true;
+            }, 2000);
+        }, 1000);
     }
 }
 

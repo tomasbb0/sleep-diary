@@ -32,6 +32,13 @@ body {
     line-height: 1.6;
 }
 
+/* Desktop custom cursor for all clickable elements */
+@media (hover: hover) and (pointer: fine) {
+    button, a, .tab, [role="button"], input[type="submit"], .auth-btn {
+        cursor: url('cursor.svg') 4 0, pointer;
+    }
+}
+
 /* ============ SCREENS ============ */
 .screen { display: none; min-height: 100vh; min-height: 100dvh; }
 .screen.active { display: flex; flex-direction: column; }
@@ -41,9 +48,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 24px;
-    background: transparent;
-    border-top: 2px solid var(--border);
-    border-bottom: 2px solid var(--border);
+    background: var(--light);
 }
 
 .auth-container {
@@ -106,11 +111,19 @@ body {
     color: var(--text-dark);
 }
 
-.auth-btn:hover {
-    border-color: var(--primary);
-    background: transparent;
-    border-top: 2px solid var(--border);
-    border-bottom: 2px solid var(--border);
+/* Desktop hover effects */
+@media (hover: hover) and (pointer: fine) {
+    .auth-btn:hover {
+        border-color: var(--primary);
+        transform: scale(1.02);
+    }
+}
+
+/* Mobile - no hover effects */
+@media (hover: none) {
+    .auth-btn:hover {
+        border-color: var(--border);
+    }
 }
 
 #apple-login {
@@ -210,9 +223,7 @@ body {
 }
 
 /* ============ APP SCREEN ============ */
-#app-screen { background: transparent;
-    border-top: 2px solid var(--border);
-    border-bottom: 2px solid var(--border); }
+#app-screen { background: var(--light); }
 
 .app-header {
     background: var(--body);
@@ -232,20 +243,40 @@ body {
     color: var(--text-dark);
 }
 
-#logout {
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Unified header icon buttons */
+.header-icon-btn {
     background: transparent;
     border: 1px solid var(--border);
-    padding: 8px 16px;
-    border-radius: var(--radius-xs);
-    cursor: pointer;
-    font-size: 14px;
     color: var(--text-light);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     transition: all 0.2s;
 }
 
-#logout:hover {
+.header-icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.header-icon-btn:hover {
+    background: var(--light);
     border-color: var(--primary);
-    color: var(--primary);
+    color: var(--text-dark);
+}
+
+.header-icon-btn.spinning {
+    animation: spin 0.5s linear infinite;
 }
 
 /* Tabs */
@@ -1098,7 +1129,7 @@ body {
     color: #4caf50;
 }
 
-/* Splash Screen */
+/* ============ UNIFIED SPLASH SCREEN ============ */
 .splash-screen {
     position: fixed;
     top: 0;
@@ -1112,34 +1143,13 @@ body {
     z-index: 9999;
 }
 
-.splash-screen.zoom-out {
-    animation: splashZoomWhite 0.6s ease-in forwards;
-}
-
 .splash-screen.hidden {
     display: none;
 }
 
 .splash-content {
     text-align: center;
-}
-
-.splash-moon {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 24px;
-    animation: moonPulse 1.5s ease-in-out infinite;
-}
-
-.splash-screen.zoom-out .splash-moon {
-    animation: moonZoomIn 0.6s ease-in forwards;
-}
-
-.splash-moon svg {
-    width: 100%;
-    height: 100%;
-    color: white;
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+    z-index: 2;
 }
 
 .splash-title {
@@ -1152,41 +1162,104 @@ body {
 }
 
 .splash-subtitle {
-    font-size: 14px;
+    font-size: 16px;
     color: rgba(255, 255, 255, 0.6);
     opacity: 0;
     animation: fadeIn 0.5s ease-out 0.4s forwards;
 }
 
-.splash-screen.zoom-out .splash-title,
-.splash-screen.zoom-out .splash-subtitle {
+/* Style for welcome back name */
+.splash-subtitle.welcome-name-style {
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+}
+
+/* Moon positioned below text, will zoom from center of mass */
+.splash-moon {
+    position: absolute;
+    /* Position below the text - roughly 60% down the screen */
+    top: 60%;
+    left: 50%;
+    width: 80px;
+    height: 80px;
+    /* Offset so center of mass (42%, 58%) is at the anchor point */
+    transform: translate(-33.6px, -46.4px);
+    transform-origin: 33.6px 46.4px;
+    will-change: transform;
+    z-index: 1;
+}
+
+.splash-moon svg {
+    width: 100%;
+    height: 100%;
+    color: white;
+    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6));
+    overflow: visible;
+}
+
+/* During zoom, remove filter and apply transform to SVG for crisp scaling */
+.splash-screen.zoom-out .splash-moon svg {
+    filter: none;
+    transform-origin: 42% 58%;
+    animation: svgZoom 1.8s linear forwards;
+}
+
+/* Fade out text when zooming */
+.splash-screen.zoom-out .splash-content {
     animation: fadeOut 0.3s ease-out forwards;
 }
 
-@keyframes moonPulse {
-    0%, 100% { 
+/* Container stays in place, SVG inside zooms */
+.splash-screen.zoom-out .splash-moon {
+    /* Container doesn't animate anymore */
+}
+
+/* Background transitions to white, allow overflow for zoom */
+.splash-screen.zoom-out {
+    overflow: visible;
+    animation: bgToWhite 1.8s cubic-bezier(0.3, 0, 1, 1) forwards;
+}
+
+/* SVG scales up massively - exponential speed (slow start, accelerates rapidly) */
+@keyframes svgZoom {
+    0% {
         transform: scale(1);
-        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
     }
-    50% { 
-        transform: scale(1.05);
-        filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.8));
+    20% {
+        transform: scale(1.5);
+    }
+    40% {
+        transform: scale(3);
+    }
+    60% {
+        transform: scale(8);
+    }
+    80% {
+        transform: scale(25);
+    }
+    100% {
+        transform: scale(100);
     }
 }
 
-@keyframes moonZoomIn {
-    0% { transform: scale(1); }
-    100% { transform: scale(50); }
-}
-
-@keyframes splashZoomWhite {
-    0% { background: #000; }
-    100% { background: #fff; }
+@keyframes bgToWhite {
+    0%, 92% {
+        background: #000;
+    }
+    100% {
+        background: #fff;
+    }
 }
 
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
 @keyframes fadeOut {
@@ -1243,39 +1316,6 @@ body {
 .welcome-title {
     font-size: 24px !important;
     margin-bottom: 4px !important;
-}
-
-.splash-name {
-    font-size: 32px;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 32px;
-    opacity: 0;
-    animation: fadeIn 0.5s ease-out 0.3s forwards;
-}
-
-/* Faster moon zoom for desktop */
-@keyframes moonZoomIn {
-    0% { transform: scale(1) translate(0, 0); }
-    100% { transform: scale(200) translate(0, 50%); }
-}
-
-.splash-moon svg {
-    width: 100%;
-    height: 100%;
-    color: white;
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
-    /* Ensure crisp vector rendering */
-    shape-rendering: geometricPrecision;
-    will-change: transform;
-}
-
-.splash-screen.zoom-out {
-    animation: splashZoomWhite 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-.splash-screen.zoom-out .splash-moon {
-    animation: moonZoomIn 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
 /* Name Modal */
@@ -1357,36 +1397,6 @@ body {
     border-radius: 4px;
     font-weight: 600;
     cursor: pointer;
-}
-
-/* Header Refresh Button */
-.header-refresh {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-light);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    padding: 0;
-}
-
-.header-refresh svg {
-    width: 16px;
-    height: 16px;
-}
-
-.header-refresh:hover {
-    background: var(--border);
-    color: var(--text);
-}
-
-.header-refresh.spinning {
-    animation: spin 0.5s linear infinite;
 }
 
 @keyframes spin {

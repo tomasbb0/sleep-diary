@@ -15,29 +15,17 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Splash Screen -->
+    <!-- Single Unified Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
-            <div class="splash-moon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-                </svg>
-            </div>
-            <h1 class="splash-title">Diário de Sono</h1>
-            <p class="splash-subtitle">Bons sonhos começam aqui</p>
+            <h1 class="splash-title" id="splash-title">Diário de Sono</h1>
+            <p class="splash-subtitle" id="splash-subtitle">Bons sonhos começam aqui</p>
         </div>
-    </div>
-
-    <!-- Welcome Back Splash -->
-    <div id="welcome-splash" class="splash-screen hidden">
-        <div class="splash-content">
-            <h1 class="splash-title welcome-title">Bem-vindo de volta,</h1>
-            <p class="splash-name" id="welcome-name"></p>
-            <div class="splash-moon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-                </svg>
-            </div>
+        <!-- Moon positioned separately for zoom animation -->
+        <div class="splash-moon">
+            <svg viewBox="0 0 24 24" fill="currentColor" preserveAspectRatio="xMidYMid meet">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
         </div>
     </div>
 
@@ -155,13 +143,24 @@
             <div class="header-brand"><svg class="header-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><h1>Diário de Sono</h1></div>
             <div class="header-user">
                 <span id="user-greeting">Olá</span>
-                <button id="logout">Terminar sessão</button>
-                <button id="refresh-app" class="header-refresh" title="Atualizar app">
+                <button id="edit-name" class="header-icon-btn" title="Editar nome">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                    </svg>
+                </button>
+                <button id="refresh-app" class="header-icon-btn" title="Atualizar app">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                         <path d="M3 3v5h5"/>
                         <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
                         <path d="M16 16h5v5"/>
+                    </svg>
+                </button>
+                <button id="logout" class="header-icon-btn" title="Terminar sessão">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
                     </svg>
                 </button>
             </div>
