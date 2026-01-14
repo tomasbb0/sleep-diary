@@ -107,15 +107,16 @@ function isStandalonePWA() {
 function initAuth() {
     console.log('Setting up auth, standalone PWA:', isStandalonePWA());
     
+    // Set persistence to LOCAL for iOS PWA support
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => {
+        console.error('Persistence error:', err);
+    });
+    
     document.getElementById('google-login').addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
-            // Use redirect for PWA (popups don't work), popup for browser
-            if (isStandalonePWA()) {
-                await auth.signInWithRedirect(provider);
-            } else {
-                await auth.signInWithPopup(provider);
-            }
+            // Always use redirect for better iOS PWA compatibility
+            await auth.signInWithRedirect(provider);
         } catch (error) {
             showAuthError(error.message);
         }
@@ -126,12 +127,8 @@ function initAuth() {
             const provider = new firebase.auth.OAuthProvider('apple.com');
             provider.addScope('email');
             provider.addScope('name');
-            // Use redirect for PWA (popups don't work), popup for browser
-            if (isStandalonePWA()) {
-                await auth.signInWithRedirect(provider);
-            } else {
-                await auth.signInWithPopup(provider);
-            }
+            // Always use redirect for better iOS PWA compatibility
+            await auth.signInWithRedirect(provider);
         } catch (error) {
             showAuthError(error.message);
         }
