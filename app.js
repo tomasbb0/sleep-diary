@@ -873,20 +873,29 @@ function handleHistoryClick(dateStr, answers, isComplete) {
 
 function hideIncompleteModal() {
     document.getElementById('incomplete-action-modal').classList.add('hidden');
+}
+
+function clearPendingIncomplete() {
     pendingIncompleteDate = null;
     pendingIncompleteAnswers = null;
 }
 
 function completeIncomplete() {
-    // Complete only missing questions
+    // Complete only missing questions - save values before hiding modal
+    const dateStr = pendingIncompleteDate;
+    const answers = pendingIncompleteAnswers;
     hideIncompleteModal();
-    startEdit(pendingIncompleteDate, pendingIncompleteAnswers, true);
+    clearPendingIncomplete();
+    startEdit(dateStr, answers, true);
 }
 
 function editIncomplete() {
-    // Edit all questions
+    // Edit all questions - save values before hiding modal
+    const dateStr = pendingIncompleteDate;
+    const answers = pendingIncompleteAnswers;
     hideIncompleteModal();
-    startEdit(pendingIncompleteDate, pendingIncompleteAnswers, false);
+    clearPendingIncomplete();
+    startEdit(dateStr, answers, false);
 }
 
 function startEdit(dateStr, existingAnswers, onlyMissing = false) {
