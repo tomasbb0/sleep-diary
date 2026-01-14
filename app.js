@@ -309,37 +309,24 @@ function getRequiredQuestions(answers) {
     });
 }
 
+function isAnswered(val) {
+    // A question is answered if it has any value that's not undefined, null, or empty string
+    if (val === undefined || val === null) return false;
+    if (typeof val === 'number') return true; // 0 is a valid answer
+    if (typeof val === 'string') return val.trim() !== '';
+    return true;
+}
+
 function calculateCompletion(answers) {
     const required = getRequiredQuestions(answers);
-    const answered = required.filter(q => {
-        const val = answers[q.id];
-        // Check for number 0 as valid answer
-        if (typeof val === 'number') return true;
-        return val !== undefined && val !== null && val !== '';
-    });
-    
-    // Debug logging
-    console.log('Completion check:', {
-        totalQuestions: QUESTIONS.length,
-        requiredQuestions: required.length,
-        answeredCount: answered.length,
-        answersKeys: Object.keys(answers),
-        missing: required.filter(q => {
-            const val = answers[q.id];
-            if (typeof val === 'number') return false;
-            return val === undefined || val === null || val === '';
-        }).map(q => q.id)
-    });
+    const answered = required.filter(q => isAnswered(answers[q.id]));
+    const missing = required.filter(q => !isAnswered(answers[q.id]));
     
     return {
         total: required.length,
         completed: answered.length,
-        percentage: Math.round((answered.length / required.length) * 100),
-        missing: required.filter(q => {
-            const val = answers[q.id];
-            if (typeof val === 'number') return false;
-            return val === undefined || val === null || val === '';
-        })
+        percentage: required.length > 0 ? Math.round((answered.length / required.length) * 100) : 100,
+        missing: missing
     };
 }
 
@@ -988,12 +975,9 @@ function renderQuestions(containerId, answersObj, mode, onlyMissing = false) {
         return val === q.condition.value;
     });
     
-    // If only showing missing questions, filter further
+    // If only showing missing questions, filter to unanswered ones
     if (onlyMissing) {
-        questionsList = questionsList.filter(q => {
-            const val = answersObj[q.id];
-            return val === undefined || val === null || val === '';
-        });
+        questionsList = questionsList.filter(q => !isAnswered(answersObj[q.id]));
     }
     
     if (isEdit) {
