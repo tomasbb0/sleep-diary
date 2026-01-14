@@ -74,7 +74,7 @@
         <div id="new-session-tab" class="tab-content active">
             <div id="session-available" class="session-box">
                 <div class="streak-display" id="streak-display">
-                    <span class="streak-fire">🔥</span>
+                    <svg class="streak-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
                     <span class="streak-number" id="streak-count">0</span>
                     <span class="streak-label">dias</span>
                 </div>
@@ -83,7 +83,7 @@
                 <button id="start-session" class="btn-primary">Começar Registo</button>
                 <div class="streak-countdown">
                     <div class="streak-timer">
-                        <span class="streak-timer-icon">⏰</span>
+                        <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                         <span id="streak-time" class="streak-time">--:--:--</span>
                     </div>
                     <p class="streak-warning" id="streak-warning">para manter o streak!</p>
@@ -92,15 +92,15 @@
             
             <div id="session-locked" class="session-box hidden">
                 <div class="streak-display streak-success" id="streak-display-locked">
-                    <span class="streak-fire">🔥</span>
+                    <svg class="streak-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
                     <span class="streak-number" id="streak-count-locked">0</span>
                     <span class="streak-label">dias</span>
                 </div>
-                <h2>Streak Mantido! ✓</h2>
+                <h2>Streak Mantido!</h2>
                 <p class="session-subtitle">Volta amanhã para continuar</p>
                 <div class="streak-countdown">
                     <div class="streak-timer">
-                        <span class="streak-timer-icon">🌙</span>
+                        <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
                         <span id="next-session-time" class="streak-time">--:--:--</span>
                     </div>
                     <p class="streak-note">até ao próximo registo</p>

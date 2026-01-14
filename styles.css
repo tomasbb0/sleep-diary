@@ -981,3 +981,26 @@ body {
 .streak-lost .streak-number {
     color: var(--text-light);
 }
+
+/* SVG Icons for streak */
+.streak-icon {
+    width: 36px;
+    height: 36px;
+    stroke: var(--primary);
+    stroke-width: 2;
+}
+
+.streak-success .streak-icon {
+    stroke: var(--success);
+}
+
+.streak-lost .streak-icon {
+    stroke: var(--text-light);
+}
+
+.timer-icon {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-light);
+    flex-shrink: 0;
+}

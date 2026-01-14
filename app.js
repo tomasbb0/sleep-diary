@@ -262,7 +262,7 @@ function updateCountdown() {
     if (warning) {
         if (hours < 2) {
             warning.classList.add('urgent');
-            warning.textContent = '⚠️ Rápido! O streak vai acabar!';
+            warning.textContent = 'Rápido! O streak vai acabar!';
         } else {
             warning.classList.remove('urgent');
             warning.textContent = 'para manter o streak!';
@@ -382,7 +382,7 @@ async function loadHistory() {
         await loadExistingDates().then(() => loadStreakData());
         
         if (snapshot.empty) {
-            list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>Ainda não há registos.</p></div>`;
+            list.innerHTML = `<div class="empty-state"><div class="empty-state-icon"></div><p>Ainda não há registos.</p></div>`;
             return;
         }
         
@@ -428,9 +428,9 @@ async function loadHistory() {
                 <div class="history-item-left">
                     <div class="history-date">${formatDateLong(nightDate)}</div>
                     <div class="history-summary">
-                        🌙 Deitou ${a.deitou || '—'} · 
-                        ☀️ Acordou ${a.acordou || '—'} · 
-                        😴 ${a.sono_total || '—'}
+                        Deitou ${a.deitou || '—'} · 
+                        Acordou ${a.acordou || '—'} · 
+                        Sono: ${a.sono_total || '—'}
                     </div>
                 </div>
                 <span class="history-status ${isComplete ? 'status-complete' : 'status-incomplete'}">
@@ -521,7 +521,7 @@ async function saveEdit() {
         
         // Show success feedback
         const btn = document.getElementById('save-edit');
-        btn.textContent = '✅ Guardado!';
+        btn.textContent = 'Guardado!';
         setTimeout(() => { btn.textContent = 'Guardar'; }, 2000);
         
         // Go back to list
