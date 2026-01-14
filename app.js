@@ -389,7 +389,7 @@ async function loadHistory() {
         const snapshot = await db.collection('users').doc(currentUser.uid)
             .collection('entries').orderBy('date', 'desc').limit(60).get();
         
-        await loadExistingDates().then(() => {
+        await loadExistingDates();
         
         if (snapshot.empty) {
             list.innerHTML = `<div class="empty-state"><div class="empty-state-icon"></div><p>Ainda não há registos.</p></div>`;
