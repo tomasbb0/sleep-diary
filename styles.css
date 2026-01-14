@@ -986,7 +986,7 @@ body {
 .streak-icon {
     width: 36px;
     height: 36px;
-    stroke: var(--primary);
+    color: var(--primary);
     stroke-width: 2;
 }
 
