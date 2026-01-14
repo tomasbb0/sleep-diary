@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Icons</title></head>
+<body>
+<canvas id="c192" width="192" height="192"></canvas>
+<canvas id="c512" width="512" height="512"></canvas>
+<script>
+function drawIcon(canvas) {
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    const scale = size / 24;
+    
+    // Black background
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, size, size);
+    
+    // White moon - using the path from the SVG
+    ctx.fillStyle = '#ffffff';
+    ctx.save();
+    ctx.translate(size/2, size/2);
+    ctx.scale(scale * 0.6, scale * 0.6);
+    ctx.translate(-12, -12);
+    
+    // Moon crescent path
+    ctx.beginPath();
+    // Outer circle
+    ctx.arc(12, 12, 9, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Cut out inner circle to make crescent
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(15, 9, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+}
+
+drawIcon(document.getElementById('c192'));
+drawIcon(document.getElementById('c512'));
+
+// Download links
+const a192 = document.createElement('a');
+a192.href = document.getElementById('c192').toDataURL('image/png');
+a192.download = 'icon-192.png';
+a192.textContent = 'Download 192';
+document.body.appendChild(a192);
+
+const a512 = document.createElement('a');
+a512.href = document.getElementById('c512').toDataURL('image/png');
+a512.download = 'icon-512.png';
+a512.textContent = 'Download 512';
+document.body.appendChild(a512);
+</script>
+</body>
+</html>

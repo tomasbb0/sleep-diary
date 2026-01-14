@@ -4,8 +4,8 @@
   "description": "Registo diário do sono para acompanhamento de saúde",
   "start_url": "/sleep-diary/",
   "display": "standalone",
-  "background_color": "#f5f0e6",
-  "theme_color": "#6b5b47",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {

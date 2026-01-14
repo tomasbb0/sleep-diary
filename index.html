@@ -41,6 +41,23 @@
         </div>
     </div>
 
+
+    <!-- Name Request Modal (for existing users) -->
+    <div id="name-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Olá! 👋</h2>
+            <p>Como gostaria que lhe chamássemos?</p>
+            <input type="text" id="name-input" placeholder="O seu nome" autocomplete="given-name">
+            <button id="save-name-btn" class="auth-btn auth-btn-primary">Guardar</button>
+        </div>
+    </div>
+
+    <!-- Update notification -->
+    <div id="update-banner" class="update-banner hidden">
+        <span>Nova versão disponível</span>
+        <button id="update-btn">Atualizar</button>
+    </div>
+
     <!-- Auth Screen -->
     <div id="auth-screen" class="screen active">
         <div class="auth-container">
@@ -124,6 +141,7 @@
             <div class="header-user">
                 <span id="user-greeting">Olá</span>
                 <button id="logout">Terminar sessão</button>
+                <button id="refresh-app" class="header-refresh" title="Atualizar app">↻</button>
             </div>
         </header>
         

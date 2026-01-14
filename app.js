@@ -36,6 +36,34 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     initNewSession();
     initHistory();
+    
+    // Name modal save button
+    const saveNameBtn = document.getElementById('save-name-btn');
+    if (saveNameBtn) {
+        saveNameBtn.addEventListener('click', async () => {
+            const nameInput = document.getElementById('name-input');
+            const name = nameInput.value.trim();
+            if (name) {
+                await saveUserName(name);
+                hideNameModal();
+            }
+        });
+    }
+    
+    // Update button - force refresh
+    const updateBtn = document.getElementById('update-btn');
+    if (updateBtn) {
+        updateBtn.addEventListener('click', forceRefresh);
+    }
+    
+    // Header refresh button
+    const refreshBtn = document.getElementById('refresh-app');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            this.classList.add('spinning');
+            forceRefresh();
+        });
+    }
 });
 
 // ==================== AUTH ====================
@@ -105,6 +133,82 @@ function initAuth() {
             showScreen('auth');
         }
     });
+}
+
+
+// ==================== USER NAME ====================
+async function loadUserName() {
+    try {
+        // First try Firestore
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if (doc.exists && doc.data().name) {
+            userName = doc.data().name;
+            isReturningUser = true;
+        } else if (currentUser.displayName) {
+            // Fall back to Firebase auth display name
+            userName = currentUser.displayName;
+            await saveUserName(userName);
+            isReturningUser = true;
+        } else {
+            // No name found - show modal to ask for name
+            userName = null;
+            isReturningUser = false;
+            showNameModal();
+        }
+        updateGreeting();
+    } catch (error) {
+        console.error('Error loading user name:', error);
+        userName = currentUser.displayName || null;
+        if (!userName) showNameModal();
+        updateGreeting();
+    }
+}
+
+async function saveUserName(name) {
+    try {
+        await db.collection('users').doc(currentUser.uid).set({
+            name: name,
+            email: currentUser.email
+        }, { merge: true });
+        userName = name;
+        updateGreeting();
+    } catch (error) {
+        console.error('Error saving user name:', error);
+    }
+}
+
+function updateGreeting() {
+    const greetingEl = document.getElementById('user-greeting');
+    if (greetingEl && userName) {
+        greetingEl.textContent = `Olá, ${userName}`;
+    }
+}
+
+function showNameModal() {
+    const modal = document.getElementById('name-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function hideNameModal() {
+    const modal = document.getElementById('name-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function showWelcomeBack() {
+    const welcome = document.getElementById('welcome-splash');
+    const nameEl = document.getElementById('welcome-name');
+    if (welcome && nameEl && userName) {
+        nameEl.textContent = userName;
+        welcome.classList.remove('hidden');
+        setTimeout(() => {
+            welcome.classList.add('fade-out');
+            setTimeout(() => welcome.classList.add('hidden'), 500);
+        }, 1500);
+    }
 }
 
 function showAuthError(msg) {
@@ -943,6 +1047,24 @@ function debounce(fn, delay) {
         clearTimeout(timeout);
         timeout = setTimeout(() => fn(...args), delay);
     };
+}
+
+// ==================== FORCE REFRESH ====================
+function forceRefresh() {
+    // Clear caches
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+        });
+    }
+    // Unregister service worker and reload
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(reg => reg.unregister());
+        });
+    }
+    // Force hard reload
+    setTimeout(() => window.location.reload(true), 100);
 }
 
 // ==================== PWA ====================
