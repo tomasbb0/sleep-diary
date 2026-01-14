@@ -1364,7 +1364,6 @@ body {
     background: transparent;
     border: 1px solid var(--border);
     color: var(--text-light);
-    font-size: 18px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1373,6 +1372,12 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    padding: 0;
+}
+
+.header-refresh svg {
+    width: 16px;
+    height: 16px;
 }
 
 .header-refresh:hover {
@@ -1387,4 +1392,74 @@ body {
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+/* Pending Updates Banner */
+.pending-updates-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
+}
+
+.pending-updates-banner.hidden {
+    display: none;
+}
+
+.pending-updates-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pending-updates-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.pending-updates-action {
+    background: white;
+    color: #6366f1;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pending-updates-action:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+}
+
+/* Input hint text */
+.input-hint {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 12px;
+}
+
+/* Error text for modals */
+.modal .error-text {
+    color: var(--error);
+    font-size: 13px;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+.modal .error-text.hidden {
+    display: none;
 }

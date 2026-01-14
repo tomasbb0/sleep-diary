@@ -37,16 +37,29 @@ document.addEventListener('DOMContentLoaded', () => {
     initNewSession();
     initHistory();
     
-    // Name modal save button
+    // Name modal save button with validation
     const saveNameBtn = document.getElementById('save-name-btn');
     if (saveNameBtn) {
         saveNameBtn.addEventListener('click', async () => {
             const nameInput = document.getElementById('name-input');
+            const nameError = document.getElementById('name-error');
             const name = nameInput.value.trim();
-            if (name) {
-                await saveUserName(name);
-                hideNameModal();
+            
+            // Validate: must be 1 word, max 15 characters
+            const validationResult = validateName(name);
+            if (!validationResult.valid) {
+                if (nameError) {
+                    nameError.textContent = validationResult.message;
+                    nameError.classList.remove('hidden');
+                }
+                return;
             }
+            
+            // Clear error and save
+            if (nameError) nameError.classList.add('hidden');
+            await saveUserName(name);
+            hideNameModal();
+            checkPendingUpdates(); // Refresh pending updates state
         });
     }
     
@@ -54,6 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateBtn = document.getElementById('update-btn');
     if (updateBtn) {
         updateBtn.addEventListener('click', forceRefresh);
+    }
+    
+    // Pending updates banner button
+    const pendingUpdatesBtn = document.getElementById('pending-updates-btn');
+    if (pendingUpdatesBtn) {
+        pendingUpdatesBtn.addEventListener('click', handlePendingUpdates);
     }
     
     // Header refresh button
@@ -150,17 +169,17 @@ async function loadUserName() {
             await saveUserName(userName);
             isReturningUser = true;
         } else {
-            // No name found - show modal to ask for name
+            // No name found - will be handled by pending updates system
             userName = null;
             isReturningUser = false;
-            showNameModal();
         }
         updateGreeting();
+        checkPendingUpdates(); // Check if there are pending updates to show banner
     } catch (error) {
         console.error('Error loading user name:', error);
         userName = currentUser.displayName || null;
-        if (!userName) showNameModal();
         updateGreeting();
+        checkPendingUpdates();
     }
 }
 
@@ -208,6 +227,70 @@ function showWelcomeBack() {
             welcome.classList.add('fade-out');
             setTimeout(() => welcome.classList.add('hidden'), 500);
         }, 1500);
+    }
+}
+
+// ==================== NAME VALIDATION ====================
+function validateName(name) {
+    if (!name || name.length === 0) {
+        return { valid: false, message: 'Por favor, introduza um nome' };
+    }
+    if (name.includes(' ')) {
+        return { valid: false, message: 'Apenas um nome, sem espaços' };
+    }
+    if (name.length > 15) {
+        return { valid: false, message: 'Nome deve ter no máximo 15 caracteres' };
+    }
+    return { valid: true };
+}
+
+// ==================== PENDING UPDATES SYSTEM ====================
+// List of required updates - add new checks here for future updates
+const PENDING_UPDATE_CHECKS = [
+    {
+        id: 'name',
+        check: () => !userName,
+        label: 'Adicionar nome',
+        action: showNameModal
+    }
+    // Add future required updates here, e.g.:
+    // {
+    //     id: 'phone',
+    //     check: () => !userPhone,
+    //     label: 'Adicionar telefone',
+    //     action: showPhoneModal
+    // }
+];
+
+function getPendingUpdates() {
+    return PENDING_UPDATE_CHECKS.filter(update => update.check());
+}
+
+function checkPendingUpdates() {
+    const pendingUpdates = getPendingUpdates();
+    const banner = document.getElementById('pending-updates-banner');
+    const textEl = document.getElementById('pending-updates-text');
+    
+    if (!banner) return;
+    
+    if (pendingUpdates.length > 0) {
+        // Show banner with count
+        if (pendingUpdates.length === 1) {
+            textEl.textContent = pendingUpdates[0].label;
+        } else {
+            textEl.textContent = `${pendingUpdates.length} atualizações pendentes`;
+        }
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
+}
+
+function handlePendingUpdates() {
+    const pendingUpdates = getPendingUpdates();
+    if (pendingUpdates.length > 0) {
+        // Execute the first pending update's action
+        pendingUpdates[0].action();
     }
 }
 
