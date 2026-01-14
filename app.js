@@ -104,21 +104,52 @@ function isStandalonePWA() {
            window.navigator.standalone === true;
 }
 
+function isIOSDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
 function initAuth() {
-    console.log('Setting up auth, standalone PWA:', isStandalonePWA());
+    console.log('Setting up auth, standalone PWA:', isStandalonePWA(), 'iOS:', isIOSDevice());
     
     // Set persistence to LOCAL for iOS PWA support
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => {
         console.error('Persistence error:', err);
     });
     
+    // If iOS PWA, show message that they need to login via Safari first
+    if (isStandalonePWA() && isIOSDevice()) {
+        const iosPwaWarning = document.createElement('div');
+        iosPwaWarning.id = 'ios-pwa-warning';
+        iosPwaWarning.style.cssText = 'background:#fff3cd;color:#856404;padding:12px;border-radius:8px;margin-bottom:16px;font-size:14px;text-align:center;';
+        iosPwaWarning.innerHTML = `
+            <strong>📱 Primeira vez?</strong><br>
+            Para fazer login, abra primeiro em Safari:<br>
+            <a href="https://tomasbb0.github.io/sleep-diary/" style="color:#0066cc;text-decoration:underline;">tomasbb0.github.io/sleep-diary</a><br>
+            <small>Depois de fazer login no Safari, volte aqui.</small>
+        `;
+        const authCard = document.querySelector('.auth-card');
+        if (authCard) {
+            authCard.insertBefore(iosPwaWarning, authCard.querySelector('.login-buttons'));
+        }
+    }
+    
     document.getElementById('google-login').addEventListener('click', async () => {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
-            // Always use redirect for better iOS PWA compatibility
-            await auth.signInWithRedirect(provider);
+            // Use popup on desktop/Safari, redirect elsewhere
+            if (isStandalonePWA() && isIOSDevice()) {
+                // In iOS PWA, redirect won't work - just open Safari
+                window.location.href = 'https://tomasbb0.github.io/sleep-diary/';
+                return;
+            }
+            await auth.signInWithPopup(provider);
         } catch (error) {
-            showAuthError(error.message);
+            // Fallback to redirect if popup blocked
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+                await auth.signInWithRedirect(provider);
+            } else {
+                showAuthError(error.message);
+            }
         }
     });
 
@@ -127,10 +158,18 @@ function initAuth() {
             const provider = new firebase.auth.OAuthProvider('apple.com');
             provider.addScope('email');
             provider.addScope('name');
-            // Always use redirect for better iOS PWA compatibility
-            await auth.signInWithRedirect(provider);
+            // Use popup on desktop/Safari, redirect elsewhere
+            if (isStandalonePWA() && isIOSDevice()) {
+                window.location.href = 'https://tomasbb0.github.io/sleep-diary/';
+                return;
+            }
+            await auth.signInWithPopup(provider);
         } catch (error) {
-            showAuthError(error.message);
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+                await auth.signInWithRedirect(provider);
+            } else {
+                showAuthError(error.message);
+            }
         }
     });
 

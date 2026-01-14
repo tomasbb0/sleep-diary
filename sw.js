@@ -1,4 +1,4 @@
-const CACHE_VERSION = 8;
+const CACHE_VERSION = 9;
 const CACHE_NAME = `sleep-diary-v${CACHE_VERSION}`;
 const ASSETS = [
   '/sleep-diary/',
