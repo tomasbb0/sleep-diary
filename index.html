@@ -20,12 +20,11 @@
         <div class="splash-content">
             <h1 class="splash-title" id="splash-title">Diário de Sono</h1>
             <p class="splash-subtitle" id="splash-subtitle">Bons sonhos começam aqui</p>
-        </div>
-        <!-- Moon positioned separately for zoom animation -->
-        <div class="splash-moon">
-            <svg viewBox="0 0 24 24" fill="currentColor" preserveAspectRatio="xMidYMid meet">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-            </svg>
+            <div class="splash-moon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                </svg>
+            </div>
         </div>
     </div>
 
@@ -266,6 +265,20 @@
                         <button id="confirm-add-past" class="btn-primary">Continuar</button>
                     </div>
                     <p id="add-past-error" class="error-text"></p>
+                </div>
+            </div>
+            
+            <!-- Incomplete Entry Action Modal -->
+            <div id="incomplete-action-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h3>Entrada Incompleta</h3>
+                    <p id="incomplete-percentage" style="color: var(--warning); font-weight: 600; margin-bottom: 16px;">0% completo</p>
+                    <p style="margin-bottom: 24px;">O que deseja fazer?</p>
+                    <div class="modal-buttons" style="flex-direction: column; gap: 12px;">
+                        <button id="complete-incomplete" class="btn-primary" style="width: 100%;">Completar perguntas em falta</button>
+                        <button id="edit-incomplete" class="btn-secondary" style="width: 100%;">Editar todas as respostas</button>
+                        <button id="cancel-incomplete" class="btn-tertiary" style="width: 100%; background: transparent; color: var(--text-light);">Cancelar</button>
+                    </div>
                 </div>
             </div>
             

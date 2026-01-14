@@ -250,11 +250,11 @@ function showWelcomeBackSplash() {
         // Show for 1.5s, then zoom out
         setTimeout(() => {
             splash.classList.add('zoom-out');
-            // Wait for animation to complete (1.8s) + buffer, then hide splash
+            // Wait for animation to complete (2s) + buffer, then hide splash
             setTimeout(() => {
                 splash.classList.add('hidden');
                 splashComplete = true;
-            }, 2000);
+            }, 2200);
         }, 1500);
     } else {
         finishSplash();
@@ -270,9 +270,41 @@ function finishSplash() {
             setTimeout(() => {
                 splash.classList.add('hidden');
                 splashComplete = true;
-            }, 2000);
+            }, 2200);
         }, 1000);
     }
+}
+
+// ==================== COMPLETION HELPERS ====================
+function getRequiredQuestions(answers) {
+    // Get questions that should be answered based on conditions
+    return QUESTIONS.filter(q => {
+        if (!q.condition) return true;
+        const val = answers[q.condition.field];
+        if (typeof q.condition.value === 'function') return q.condition.value(val);
+        return val === q.condition.value;
+    });
+}
+
+function calculateCompletion(answers) {
+    const required = getRequiredQuestions(answers);
+    const answered = required.filter(q => {
+        const val = answers[q.id];
+        return val !== undefined && val !== null && val !== '';
+    });
+    return {
+        total: required.length,
+        completed: answered.length,
+        percentage: Math.round((answered.length / required.length) * 100),
+        missing: required.filter(q => {
+            const val = answers[q.id];
+            return val === undefined || val === null || val === '';
+        })
+    };
+}
+
+function isSessionComplete(answers) {
+    return calculateCompletion(answers).percentage === 100;
 }
 
 // ==================== NAME VALIDATION ====================
@@ -690,6 +722,11 @@ function initHistory() {
     document.getElementById('edit-next-question').addEventListener('click', () => navigateEditQuestion(1));
     document.getElementById('export-data').addEventListener('click', exportData);
     
+    // Incomplete action modal buttons
+    document.getElementById('complete-incomplete').addEventListener('click', completeIncomplete);
+    document.getElementById('edit-incomplete').addEventListener('click', editIncomplete);
+    document.getElementById('cancel-incomplete').addEventListener('click', hideIncompleteModal);
+    
     // Set max date for date picker
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('past-date-picker').max = today;
@@ -733,6 +770,8 @@ async function loadHistory() {
         
         sessionDates.forEach((nightDate, index) => {
             const a = sessions[nightDate];
+            const completion = calculateCompletion(a);
+            const complete = completion.percentage === 100;
             
             const item = document.createElement('div');
             item.className = 'history-item';
@@ -745,8 +784,11 @@ async function loadHistory() {
                         Sono: ${a.sono_total || '—'}
                     </div>
                 </div>
+                <div class="history-status ${complete ? 'status-complete' : 'status-incomplete'}">
+                    ${complete ? 'Completo' : completion.percentage + '%'}
+                </div>
             `;
-            item.addEventListener('click', () => startEdit(nightDate, a));
+            item.addEventListener('click', () => handleHistoryClick(nightDate, a, complete));
             list.appendChild(item);
         });
     } catch (e) {
@@ -798,16 +840,54 @@ function confirmAddPast() {
     startEdit(dateStr, {});
 }
 
-function startEdit(dateStr, existingAnswers) {
+// Variables for complete-only-missing mode
+let completeOnlyMissing = false;
+let pendingIncompleteDate = null;
+let pendingIncompleteAnswers = null;
+
+function handleHistoryClick(dateStr, answers, isComplete) {
+    if (isComplete) {
+        // Complete entries go straight to edit
+        startEdit(dateStr, answers, false);
+    } else {
+        // Incomplete entries show action modal
+        pendingIncompleteDate = dateStr;
+        pendingIncompleteAnswers = answers;
+        const completion = calculateCompletion(answers);
+        document.getElementById('incomplete-percentage').textContent = `${completion.percentage}% completo`;
+        document.getElementById('incomplete-action-modal').classList.remove('hidden');
+    }
+}
+
+function hideIncompleteModal() {
+    document.getElementById('incomplete-action-modal').classList.add('hidden');
+    pendingIncompleteDate = null;
+    pendingIncompleteAnswers = null;
+}
+
+function completeIncomplete() {
+    // Complete only missing questions
+    hideIncompleteModal();
+    startEdit(pendingIncompleteDate, pendingIncompleteAnswers, true);
+}
+
+function editIncomplete() {
+    // Edit all questions
+    hideIncompleteModal();
+    startEdit(pendingIncompleteDate, pendingIncompleteAnswers, false);
+}
+
+function startEdit(dateStr, existingAnswers, onlyMissing = false) {
     editingDate = dateStr;
     editAnswers = { ...existingAnswers };
     editQuestionIndex = 0;
+    completeOnlyMissing = onlyMissing;
     
     document.getElementById('edit-date').textContent = `Noite de ${formatDatePT(dateStr)}`;
     document.getElementById('history-list').classList.add('hidden');
     document.getElementById('history-edit-mode').classList.remove('hidden');
     
-    renderQuestions('edit-questions-container', editAnswers, 'edit');
+    renderQuestions('edit-questions-container', editAnswers, 'edit', onlyMissing);
     showQuestion(0, 'edit');
 }
 
@@ -874,14 +954,22 @@ async function exportData() {
 }
 
 // ==================== QUESTIONS RENDERING ====================
-function renderQuestions(containerId, answersObj, mode) {
+function renderQuestions(containerId, answersObj, mode, onlyMissing = false) {
     const isEdit = mode === 'edit';
-    const questionsList = QUESTIONS.filter(q => {
+    let questionsList = QUESTIONS.filter(q => {
         if (!q.condition) return true;
         const val = answersObj[q.condition.field];
         if (typeof q.condition.value === 'function') return q.condition.value(val);
         return val === q.condition.value;
     });
+    
+    // If only showing missing questions, filter further
+    if (onlyMissing) {
+        questionsList = questionsList.filter(q => {
+            const val = answersObj[q.id];
+            return val === undefined || val === null || val === '';
+        });
+    }
     
     if (isEdit) {
         editVisibleQuestions = questionsList;
