@@ -213,8 +213,23 @@ function updateStreakDisplay() {
     // Update display state based on streak
     const displays = document.querySelectorAll('.streak-display');
     displays.forEach(d => {
-        d.classList.toggle('streak-lost', streakData.current === 0);
+        d.classList.remove('streak-lost', 'streak-active');
+        if (streakData.current > 0) {
+            d.classList.add('streak-active');
+        } else {
+            d.classList.add('streak-lost');
+        }
     });
+    
+    // Also update the streak section styling based on session state
+    const sessionLocked = document.getElementById('session-locked');
+    const sessionAvailable = document.getElementById('session-available');
+    if (sessionLocked && !sessionLocked.classList.contains('hidden')) {
+        // Session done today - show success styling
+        document.querySelectorAll('.streak-section').forEach(s => {
+            s.classList.add('streak-success');
+        });
+    }
 }
 
 function checkSessionAvailability() {
@@ -329,9 +344,24 @@ function cancelSession() {
 }
 
 function navigateQuestion(dir) {
-    if (dir === 1 && currentQuestionIndex >= visibleQuestions.length - 1) {
-        saveNewEntry();
-        return;
+    // Validate current question before advancing
+    if (dir === 1) {
+        const currentQ = visibleQuestions[currentQuestionIndex];
+        if (currentQ && !answers[currentQ.id]) {
+            alert('Por favor responda à pergunta antes de continuar.');
+            return;
+        }
+        
+        if (currentQuestionIndex >= visibleQuestions.length - 1) {
+            // Validate all questions before saving
+            const unanswered = visibleQuestions.find(q => !answers[q.id]);
+            if (unanswered) {
+                alert('Por favor responda a todas as perguntas.');
+                return;
+            }
+            saveNewEntry();
+            return;
+        }
     }
     currentQuestionIndex = Math.max(0, Math.min(visibleQuestions.length - 1, currentQuestionIndex + dir));
     showQuestion(currentQuestionIndex, 'new');
@@ -411,8 +441,9 @@ async function loadHistory() {
         sessionDates.forEach((nightDate, index) => {
             const a = sessions[nightDate];
             
-            // All recorded sessions are complete - you filled them in
-            const isComplete = true;
+            // Entry is "complete" only if it's not today's session (still recording morning)
+            const todaySession = getSessionDate();
+            const isComplete = nightDate !== todaySession;
             
             const item = document.createElement('div');
             item.className = 'history-item';
@@ -633,16 +664,17 @@ function addQuestionListeners(container, answersObj, mode) {
             e.target.classList.add('selected');
             answersObj[question.id] = e.target.dataset.value;
             
-            // Re-render to handle conditional questions
+            // Auto-advance to next question after selection
             setTimeout(() => {
-                const currentIdx = isEdit ? editQuestionIndex : currentQuestionIndex;
-                if (currentIdx < questionsList.length - 1) {
-                    if (isEdit) {
+                if (isEdit) {
+                    if (editQuestionIndex < questionsList.length - 1) {
                         editQuestionIndex++;
-                        renderQuestions('edit-questions-container', editAnswers, 'edit');
-                    } else {
+                        showQuestion(editQuestionIndex, 'edit');
+                    }
+                } else {
+                    if (currentQuestionIndex < questionsList.length - 1) {
                         currentQuestionIndex++;
-                        renderQuestions('questions-container', answers, 'new');
+                        showQuestion(currentQuestionIndex, 'new');
                     }
                 }
             }, 200);

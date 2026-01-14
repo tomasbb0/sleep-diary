@@ -1043,3 +1043,30 @@ body {
     padding-top: 0;
     border-top: none;
 }
+
+/* Streak states */
+.streak-display.streak-active .streak-icon {
+    color: #ff6b35;
+}
+
+.streak-display.streak-active .streak-number {
+    color: var(--primary);
+}
+
+.streak-display.streak-lost .streak-icon,
+.streak-display.streak-lost .streak-number {
+    color: var(--text-light);
+    opacity: 0.5;
+}
+
+.streak-section.streak-success {
+    background: rgba(76, 175, 80, 0.05);
+    border-color: rgba(76, 175, 80, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.streak-section.streak-success .streak-section-label {
+    color: #4caf50;
+}
