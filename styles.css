@@ -1004,3 +1004,16 @@ body {
     stroke: var(--text-light);
     flex-shrink: 0;
 }
+
+/* Header brand with moon */
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-moon {
+    width: 24px;
+    height: 24px;
+    color: var(--primary);
+}
