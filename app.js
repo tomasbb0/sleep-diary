@@ -449,9 +449,8 @@ async function loadHistory() {
         sessionDates.forEach((nightDate, index) => {
             const a = sessions[nightDate];
             
-            // Entry is "complete" only if it's not today's session (still recording morning)
-            const todaySession = getSessionDate();
-            const isComplete = nightDate !== todaySession;
+            // Most recent entry (index 0) is "in progress" - only complete when next day's entry exists
+            const isComplete = index > 0;
             
             const item = document.createElement('div');
             item.className = 'history-item';
