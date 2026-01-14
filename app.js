@@ -1,5 +1,7 @@
 // ==================== STATE ====================
 let currentUser = null;
+let userName = null;
+let isReturningUser = false;
 let answers = {};
 let editAnswers = {};
 let visibleQuestions = [];
@@ -84,10 +86,18 @@ function initAuth() {
 
     document.getElementById('logout').addEventListener('click', () => auth.signOut());
 
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         if (user) {
+            await loadUserName();
             showScreen('app');
+            
+            // Show welcome back for returning users
+            if (isReturningUser && userName) {
+                showWelcomeBack();
+                isReturningUser = false;
+            }
+            
             loadExistingDates().then(() => {
                 loadStreakData().then(() => checkSessionAvailability());
             });

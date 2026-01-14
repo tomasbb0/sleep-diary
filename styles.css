@@ -1193,3 +1193,77 @@ body {
     from { opacity: 1; }
     to { opacity: 0; }
 }
+
+/* Auth Switch Links */
+.auth-switch {
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+.auth-switch a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.auth-btn-primary {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.auth-btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* Header User Section */
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#user-greeting {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+}
+
+#logout {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+/* Welcome Splash */
+.welcome-title {
+    font-size: 24px !important;
+    margin-bottom: 4px !important;
+}
+
+.splash-name {
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 0.3s forwards;
+}
+
+/* Faster moon zoom for desktop */
+@keyframes moonZoomIn {
+    0% { transform: scale(1); }
+    100% { transform: scale(100); }
+}
+
+.splash-screen.zoom-out {
+    animation: splashZoomWhite 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.splash-screen.zoom-out .splash-moon {
+    animation: moonZoomIn 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
