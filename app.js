@@ -19,11 +19,16 @@ const UNLOCK_MINUTE = 30;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing...');
     
-    // Hide splash after animation completes
+    // Splash animation: show for 1.5s, then zoom moon and fade to white
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        if (splash) splash.classList.add('hidden');
-    }, 2500);
+        if (splash) {
+            splash.classList.add('zoom-out');
+            setTimeout(() => {
+                splash.classList.add('hidden');
+            }, 600);
+        }
+    }, 1500);
     
     initAuth();
     initTabs();

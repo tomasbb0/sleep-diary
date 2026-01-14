@@ -1105,12 +1105,15 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    animation: splashFadeOut 0.5s ease-out 2s forwards;
+}
+
+.splash-screen.zoom-out {
+    animation: splashZoomWhite 0.6s ease-in forwards;
 }
 
 .splash-screen.hidden {
@@ -1119,60 +1122,74 @@ body {
 
 .splash-content {
     text-align: center;
-    animation: splashContentIn 0.8s ease-out;
 }
 
 .splash-moon {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     margin: 0 auto 24px;
-    animation: moonFloat 2s ease-in-out infinite, moonGlow 2s ease-in-out infinite;
+    animation: moonPulse 1.5s ease-in-out infinite;
+}
+
+.splash-screen.zoom-out .splash-moon {
+    animation: moonZoomIn 0.6s ease-in forwards;
 }
 
 .splash-moon svg {
     width: 100%;
     height: 100%;
-    color: #f4d35e;
-    filter: drop-shadow(0 0 30px rgba(244, 211, 94, 0.6));
+    color: white;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
 }
 
 .splash-title {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
     color: white;
     margin-bottom: 8px;
     opacity: 0;
-    animation: fadeInUp 0.6s ease-out 0.3s forwards;
+    animation: fadeIn 0.5s ease-out 0.2s forwards;
 }
 
 .splash-subtitle {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
     opacity: 0;
-    animation: fadeInUp 0.6s ease-out 0.5s forwards;
+    animation: fadeIn 0.5s ease-out 0.4s forwards;
 }
 
-@keyframes moonFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+.splash-screen.zoom-out .splash-title,
+.splash-screen.zoom-out .splash-subtitle {
+    animation: fadeOut 0.3s ease-out forwards;
 }
 
-@keyframes moonGlow {
-    0%, 100% { filter: drop-shadow(0 0 30px rgba(244, 211, 94, 0.6)); }
-    50% { filter: drop-shadow(0 0 50px rgba(244, 211, 94, 0.9)); }
+@keyframes moonPulse {
+    0%, 100% { 
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+    }
+    50% { 
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.8));
+    }
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes moonZoomIn {
+    0% { transform: scale(1); }
+    100% { transform: scale(50); }
 }
 
-@keyframes splashContentIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+@keyframes splashZoomWhite {
+    0% { background: #000; }
+    100% { background: #fff; }
 }
 
-@keyframes splashFadeOut {
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
     from { opacity: 1; }
-    to { opacity: 0; visibility: hidden; pointer-events: none; }
+    to { opacity: 0; }
 }
