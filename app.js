@@ -162,17 +162,18 @@ function initAuth() {
 
     document.getElementById('logout').addEventListener('click', () => auth.signOut());
 
-    // Handle redirect result for PWA auth (must be called on page load)
-    if (isStandalonePWA()) {
-        auth.getRedirectResult().then((result) => {
-            if (result.user) {
-                console.log('Redirect auth successful:', result.user.email);
-            }
-        }).catch((error) => {
-            console.error('Redirect auth error:', error);
-            showAuthError(error.message);
-        });
-    }
+    // Handle redirect result for PWA auth - MUST run before onAuthStateChanged
+    // This catches the user returning from Google sign-in
+    auth.getRedirectResult().then((result) => {
+        if (result && result.user) {
+            console.log('Redirect auth successful:', result.user.email);
+        }
+    }).catch((error) => {
+        console.error('Redirect auth error:', error.code, error.message);
+        if (error.code !== 'auth/popup-closed-by-user') {
+            showAuthError('Erro no login: ' + error.message);
+        }
+    });
 
     auth.onAuthStateChanged(async (user) => {
         currentUser = user;
