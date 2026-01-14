@@ -343,6 +343,7 @@ function startNewSession() {
     document.getElementById('session-form').classList.remove('hidden');
     
     renderQuestions('questions-container', answers, 'new');
+    showQuestion(0, 'new');
 }
 
 function cancelSession() {
@@ -529,6 +530,7 @@ function startEdit(dateStr, existingAnswers) {
     document.getElementById('history-edit-mode').classList.remove('hidden');
     
     renderQuestions('edit-questions-container', editAnswers, 'edit');
+    showQuestion(0, 'edit');
 }
 
 function cancelEdit() {
@@ -655,7 +657,6 @@ function renderQuestions(containerId, answersObj, mode) {
     });
     
     addQuestionListeners(container, answersObj, mode);
-    showQuestion(0, mode);
 }
 
 function addQuestionListeners(container, answersObj, mode) {
