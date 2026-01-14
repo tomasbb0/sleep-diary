@@ -332,6 +332,7 @@ async function saveNewEntry() {
     try {
         await db.collection('users').doc(currentUser.uid)
             .collection('entries').doc(sessionDate).set({
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 date: sessionDate,
                 answers: answers,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -515,7 +516,7 @@ async function saveEdit() {
                 date: editingDate,
                 answers: editAnswers,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            }, { merge: true });
         existingDates.add(editingDate);
         
         // Show success feedback
@@ -545,8 +546,8 @@ async function exportData() {
         const entries = [];
         snapshot.forEach(doc => entries.push(doc.data()));
         
-        const headers = ['Data', ...QUESTIONS.map(q => q.title.replace(/^\d+\.\s*/, ''))];
-        const rows = entries.map(e => [e.date, ...QUESTIONS.map(q => e.answers?.[q.id] || '')]);
+        const headers = ['Data', ...QUESTIONS.map(q => q.title.replace(/^\d+\.\s*/, '')), 'Data de Criação'];
+        const rows = entries.map(e => [e.date, ...QUESTIONS.map(q => e.answers?.[q.id] || ''), e.createdAt ? e.createdAt.toDate().toISOString() : '']);
         const csv = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
         
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
