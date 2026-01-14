@@ -41,7 +41,9 @@ body {
     justify-content: center;
     align-items: center;
     padding: 24px;
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
 }
 
 .auth-container {
@@ -106,7 +108,9 @@ body {
 
 .auth-btn:hover {
     border-color: var(--primary);
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
 }
 
 #apple-login {
@@ -141,7 +145,9 @@ body {
 .auth-form input {
     width: 100%;
     padding: 14px 16px;
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     margin-bottom: 12px;
@@ -185,7 +191,9 @@ body {
 }
 
 #email-signup {
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     color: var(--text-dark);
     border: 1px solid var(--border);
 }
@@ -202,7 +210,9 @@ body {
 }
 
 /* ============ APP SCREEN ============ */
-#app-screen { background: var(--light); }
+#app-screen { background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border); }
 
 .app-header {
     background: var(--body);
@@ -353,7 +363,9 @@ body {
 }
 
 .btn-secondary {
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     color: var(--text-dark);
     border: 1px solid var(--border);
     padding: 16px 32px;
@@ -550,7 +562,9 @@ body {
 .modal-content input[type="date"] {
     width: 100%;
     padding: 14px 16px;
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     font-size: 15px;
@@ -627,7 +641,9 @@ body {
     min-width: calc(50% - 5px);
     padding: 16px;
     border: 1px solid var(--border);
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border-radius: var(--radius-sm);
     font-size: 15px;
     color: var(--text-dark);
@@ -648,7 +664,9 @@ body {
 .text-input {
     width: 100%;
     padding: 16px;
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     font-size: 15px;
@@ -670,7 +688,9 @@ body {
 .picker-container { margin-top: 16px; }
 
 .picker-display {
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 20px;
@@ -749,13 +769,16 @@ body {
 }
 
 .wheel-highlight {
+    /* Allow numbers to show through */
     position: absolute;
     top: 50%;
     left: 0;
     right: 0;
     height: 44px;
     transform: translateY(-50%);
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border-radius: var(--radius-xs);
     pointer-events: none;
     z-index: 1;
@@ -818,7 +841,9 @@ body {
 }
 
 .question-nav button:first-child {
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     color: var(--text-light);
     border: 1px solid var(--border);
 }
@@ -963,7 +988,9 @@ body {
 .streak-record {
     margin-top: 24px;
     padding: 12px 20px;
-    background: var(--light);
+    background: transparent;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border-radius: var(--radius-xs);
     font-size: 14px;
     color: var(--text-light);
