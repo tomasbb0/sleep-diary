@@ -23,6 +23,14 @@ let splashComplete = false;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing...');
     
+    // Fallback: if splash is still showing after 5 seconds, force dismiss it
+    setTimeout(() => {
+        if (!splashComplete) {
+            console.log('Fallback: forcing splash dismiss');
+            finishSplash();
+        }
+    }, 5000);
+    
     initAuth();
     initTabs();
     initNewSession();
