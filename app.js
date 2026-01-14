@@ -180,6 +180,44 @@ function formatDateLong(dateStr) {
     return date.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
+function formatSessionRange(nightDate) {
+    // nightDate is the date when sleep started (e.g., 13 Jan)
+    // Morning is the next day (e.g., 14 Jan)
+    const night = new Date(nightDate + 'T12:00:00');
+    const morning = new Date(night);
+    morning.setDate(morning.getDate() + 1);
+    
+    const weekdays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+    const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    
+    const nightDay = weekdays[night.getDay()];
+    const morningDay = weekdays[morning.getDay()];
+    const nightNum = night.getDate();
+    const morningNum = morning.getDate();
+    const month = months[morning.getMonth()];
+    
+    return `${nightDay} → ${morningDay}, ${nightNum}/${morningNum} ${month}`;
+}
+
+function formatSessionRange(nightDate) {
+    // nightDate is the date when sleep started (e.g., 13 Jan)
+    // Morning is the next day (e.g., 14 Jan)
+    const night = new Date(nightDate + 'T12:00:00');
+    const morning = new Date(night);
+    morning.setDate(morning.getDate() + 1);
+    
+    const weekdays = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+    const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    
+    const nightDay = weekdays[night.getDay()];
+    const morningDay = weekdays[morning.getDay()];
+    const nightNum = night.getDate();
+    const morningNum = morning.getDate();
+    const month = months[morning.getMonth()];
+    
+    return `${nightDay} → ${morningDay}, ${nightNum}/${morningNum} ${month}`;
+}
+
 // ==================== NEW SESSION ====================
 function initNewSession() {
     document.getElementById('start-session').addEventListener('click', startNewSession);
@@ -464,23 +502,17 @@ async function loadHistory() {
         sessionDates.forEach((nightDate, index) => {
             const a = sessions[nightDate];
             
-            // Most recent entry (index 0) is "in progress" - only complete when next day's entry exists
-            const isComplete = index > 0;
-            
             const item = document.createElement('div');
             item.className = 'history-item';
             item.innerHTML = `
-                <div class="history-item-left">
-                    <div class="history-date">${formatDateLong(nightDate)}</div>
+                <div class="history-item-content">
+                    <div class="history-date">${formatSessionRange(nightDate)}</div>
                     <div class="history-summary">
                         Deitou ${a.deitou || '—'} · 
                         Acordou ${a.acordou || '—'} · 
                         Sono: ${a.sono_total || '—'}
                     </div>
                 </div>
-                <span class="history-status ${isComplete ? 'status-complete' : 'status-incomplete'}">
-                    ${isComplete ? 'Completo' : 'Em progresso'}
-                </span>
             `;
             item.addEventListener('click', () => startEdit(nightDate, a));
             list.appendChild(item);
