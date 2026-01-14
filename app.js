@@ -175,11 +175,8 @@ function checkSessionAvailability() {
     document.getElementById('session-locked').classList.toggle('hidden', !hasEntry);
     document.getElementById('session-form').classList.add('hidden');
     
-    if (hasEntry) {
-        startCountdown();
-    } else {
-        if (countdownInterval) clearInterval(countdownInterval);
-    }
+    // Always start countdown (shows next session time in both states)
+    startCountdown();
 }
 
 function startCountdown() {
@@ -203,8 +200,14 @@ function updateCountdown() {
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const secs = Math.floor((diff % (1000 * 60)) / 1000);
     
-    document.getElementById('countdown').textContent = 
-        `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    const timeStr = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    
+    // Update both countdown displays
+    const mainCountdown = document.getElementById('countdown');
+    const nextCountdown = document.getElementById('next-countdown');
+    
+    if (mainCountdown) mainCountdown.textContent = timeStr;
+    if (nextCountdown) nextCountdown.textContent = timeStr;
 }
 
 function startNewSession() {
@@ -310,7 +313,7 @@ async function loadHistory() {
             todayItem.style.opacity = '0.6';
             todayItem.innerHTML = `
                 <div class="history-item-left">
-                    <div class="history-date">Dia ${formatDateLong(today)}</div>
+                    <div class="history-date">${formatDateLong(today)}</div>
                     <div class="history-summary">Aguarda registo de amanhã</div>
                 </div>
                 <span class="history-status status-incomplete">Em progresso</span>
@@ -330,7 +333,7 @@ async function loadHistory() {
             item.className = 'history-item';
             item.innerHTML = `
                 <div class="history-item-left">
-                    <div class="history-date">Dia ${formatDateLong(nightDate)}</div>
+                    <div class="history-date">${formatDateLong(nightDate)}</div>
                     <div class="history-summary">
                         🌙 Deitou ${a.deitou || '—'} · 
                         ☀️ Acordou ${a.acordou || '—'} · 
