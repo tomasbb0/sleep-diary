@@ -172,6 +172,8 @@ function initAuth() {
                 loadStreakData().then(() => checkSessionAvailability());
             });
         } else {
+            // Not logged in - finish splash and show auth screen
+            finishSplash();
             showScreen('auth');
         }
     });
