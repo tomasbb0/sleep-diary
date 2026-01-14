@@ -307,16 +307,17 @@ body {
 }
 
 .session-box h2 {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     color: var(--text-dark);
 }
 
 .session-subtitle {
     color: var(--text-light);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     font-size: 15px;
+    margin-top: 4px;
 }
 
 .countdown {
@@ -883,10 +884,10 @@ body {
 /* ============ STREAK SYSTEM ============ */
 .streak-display {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 28px;
 }
 
 .streak-fire {
@@ -900,7 +901,7 @@ body {
 }
 
 .streak-number {
-    font-size: 56px;
+    font-size: 64px;
     font-weight: 800;
     color: var(--primary);
     line-height: 1;
@@ -918,8 +919,8 @@ body {
 }
 
 .streak-countdown {
-    margin-top: 32px;
-    padding-top: 24px;
+    margin-top: 28px;
+    padding-top: 20px;
     border-top: 1px solid var(--border);
 }
 
@@ -935,11 +936,11 @@ body {
 }
 
 .streak-time {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--primary);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-dark);
     font-variant-numeric: tabular-nums;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .streak-warning {
@@ -984,10 +985,9 @@ body {
 
 /* SVG Icons for streak */
 .streak-icon {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     color: var(--primary);
-    stroke-width: 2;
 }
 
 .streak-success .streak-icon {
@@ -1016,4 +1016,30 @@ body {
     width: 24px;
     height: 24px;
     color: var(--primary);
+}
+
+/* Streak Section */
+.streak-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+.streak-section-label {
+    font-size: 13px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.streak-section .streak-display {
+    margin-bottom: 16px;
+}
+
+.streak-section .streak-countdown {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }

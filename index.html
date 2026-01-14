@@ -73,40 +73,48 @@
         <!-- New Session Tab -->
         <div id="new-session-tab" class="tab-content active">
             <div id="session-available" class="session-box">
-                <div class="streak-display" id="streak-display">
-                    <svg class="streak-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.65 0-8-2.35-8-8.5 0-3.95 2.15-7.2 4.3-9.8.85-1.05 1.7-1.95 2.4-2.75.35-.4.95-.4 1.3 0 .7.8 1.55 1.7 2.4 2.75C16.85 7.3 20 10.55 20 14.5c0 6.15-4.35 8.5-8 8.5z"/></svg>
-                    <span class="streak-number" id="streak-count">0</span>
-                    <span class="streak-label">dias</span>
-                </div>
                 <h2>Bom Dia!</h2>
                 <p class="session-subtitle">Registe como dormiu esta noite</p>
                 <button id="start-session" class="btn-primary">Começar Registo</button>
-                <div class="streak-countdown">
-                    <div class="streak-timer">
-                        <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                        <span id="streak-time" class="streak-time">--:--:--</span>
+                
+                <div class="streak-section">
+                    <p class="streak-section-label">Streak atual</p>
+                    <div class="streak-display" id="streak-display">
+                        <svg class="streak-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-1 4-4 6-4 10 0 3.31 2.69 6 6 6 1.66 0 3.16-.68 4.24-1.76C18.08 16.08 18 15.55 18 15c0-3-2-5-2-5s0 2-2 3c0-4-2-6-2-11z"/><path d="M10 15c0 1.1.9 2 2 2s2-.9 2-2c0-1.5-2-3-2-3s-2 1.5-2 3z" fill-opacity="0.3"/></svg>
+                        <span class="streak-number" id="streak-count">0</span>
+                        <span class="streak-label">dias</span>
                     </div>
-                    <p class="streak-warning" id="streak-warning">para manter o streak!</p>
+                    <div class="streak-countdown">
+                        <div class="streak-timer">
+                            <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            <span id="streak-time" class="streak-time">--:--:--</span>
+                        </div>
+                        <p class="streak-warning" id="streak-warning">para manter o streak</p>
+                    </div>
                 </div>
             </div>
             
             <div id="session-locked" class="session-box hidden">
-                <div class="streak-display streak-success" id="streak-display-locked">
-                    <svg class="streak-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.65 0-8-2.35-8-8.5 0-3.95 2.15-7.2 4.3-9.8.85-1.05 1.7-1.95 2.4-2.75.35-.4.95-.4 1.3 0 .7.8 1.55 1.7 2.4 2.75C16.85 7.3 20 10.55 20 14.5c0 6.15-4.35 8.5-8 8.5z"/></svg>
-                    <span class="streak-number" id="streak-count-locked">0</span>
-                    <span class="streak-label">dias</span>
-                </div>
-                <h2>Streak Mantido!</h2>
+                <h2>Registo Completo!</h2>
                 <p class="session-subtitle">Volta amanhã para continuar</p>
-                <div class="streak-countdown">
-                    <div class="streak-timer">
-                        <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
-                        <span id="next-session-time" class="streak-time">--:--:--</span>
+                
+                <div class="streak-section streak-success">
+                    <p class="streak-section-label">Streak atual</p>
+                    <div class="streak-display" id="streak-display-locked">
+                        <svg class="streak-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-1 4-4 6-4 10 0 3.31 2.69 6 6 6 1.66 0 3.16-.68 4.24-1.76C18.08 16.08 18 15.55 18 15c0-3-2-5-2-5s0 2-2 3c0-4-2-6-2-11z"/><path d="M10 15c0 1.1.9 2 2 2s2-.9 2-2c0-1.5-2-3-2-3s-2 1.5-2 3z" fill-opacity="0.3"/></svg>
+                        <span class="streak-number" id="streak-count-locked">0</span>
+                        <span class="streak-label">dias</span>
                     </div>
-                    <p class="streak-note">até ao próximo registo</p>
-                </div>
-                <div class="streak-record" id="streak-record">
-                    Recorde: <span id="best-streak">0</span> dias
+                    <div class="streak-countdown">
+                        <div class="streak-timer">
+                            <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+                            <span id="next-session-time" class="streak-time">--:--:--</span>
+                        </div>
+                        <p class="streak-note">até ao próximo registo</p>
+                    </div>
+                    <div class="streak-record">
+                        Recorde: <span id="best-streak">0</span> dias
+                    </div>
                 </div>
             </div>
             
