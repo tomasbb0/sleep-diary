@@ -18,6 +18,13 @@ const UNLOCK_MINUTE = 30;
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing...');
+    
+    // Hide splash after animation completes
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) splash.classList.add('hidden');
+    }, 2500);
+    
     initAuth();
     initTabs();
     initNewSession();
