@@ -281,7 +281,7 @@ async function loadHistory() {
     
     try {
         const snapshot = await db.collection('users').doc(currentUser.uid)
-            .collection('entries').orderBy('date', 'desc').limit(30).get();
+            .collection('entries').orderBy('date', 'desc').limit(60).get();
         
         await loadExistingDates();
         
@@ -290,37 +290,70 @@ async function loadHistory() {
             return;
         }
         
-        list.innerHTML = '';
-        const today = new Date().toISOString().split('T')[0];
-        
+        // Build sessions map: nightDate -> session data
+        const sessions = {};
         snapshot.forEach(doc => {
             const data = doc.data();
-            const a = data.answers || {};
-            const isToday = data.date === today;
-            const isComplete = a.qualidade_noite; // Has night data
+            sessions[data.date] = data.answers || {};
+        });
+        
+        const sessionDates = Object.keys(sessions).sort().reverse();
+        const today = new Date().toISOString().split('T')[0];
+        
+        list.innerHTML = '';
+        
+        // Show today as "in progress" if no session for last night yet
+        const lastNight = getSessionDate();
+        if (!sessions[lastNight]) {
+            const todayItem = document.createElement('div');
+            todayItem.className = 'history-item';
+            todayItem.style.opacity = '0.6';
+            todayItem.innerHTML = `
+                <div class="history-item-left">
+                    <div class="history-date">Dia ${formatDateLong(today)}</div>
+                    <div class="history-summary">Aguarda registo de amanhã</div>
+                </div>
+                <span class="history-status status-incomplete">Em progresso</span>
+            `;
+            list.appendChild(todayItem);
+        }
+        
+        sessionDates.forEach((nightDate, index) => {
+            const a = sessions[nightDate];
+            const nextDate = getNextDate(nightDate);
+            const nextSessionExists = sessions[nextDate];
+            
+            // A day is complete when the next session exists (confirms the full day cycle)
+            const isComplete = nextSessionExists || index === 0;
             
             const item = document.createElement('div');
             item.className = 'history-item';
             item.innerHTML = `
                 <div class="history-item-left">
-                    <div class="history-date">Noite de ${formatDateLong(data.date)}</div>
+                    <div class="history-date">Dia ${formatDateLong(nightDate)}</div>
                     <div class="history-summary">
-                        😴 ${a.sono_total || '—'} · 
-                        🛏️ ${a.deitou || '—'} · 
-                        ⏰ ${a.acordou || '—'}
+                        🌙 Deitou ${a.deitou || '—'} · 
+                        ☀️ Acordou ${a.acordou || '—'} · 
+                        😴 ${a.sono_total || '—'}
                     </div>
                 </div>
                 <span class="history-status ${isComplete ? 'status-complete' : 'status-incomplete'}">
                     ${isComplete ? 'Completo' : 'Em progresso'}
                 </span>
             `;
-            item.addEventListener('click', () => startEdit(data.date, data.answers));
+            item.addEventListener('click', () => startEdit(nightDate, a));
             list.appendChild(item);
         });
     } catch (e) {
         console.error('Error loading history:', e);
         list.innerHTML = '<p style="color:#d32f2f;text-align:center;">Erro ao carregar</p>';
     }
+}
+
+function getNextDate(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
 }
 
 function showAddPastModal() {
