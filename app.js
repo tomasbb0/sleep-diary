@@ -119,12 +119,19 @@ function initTabs() {
 // ==================== DATE UTILS ====================
 function getSessionDate() {
     // Returns the "night date" - the date of the night we're recording
-    // If before 4:30 AM, it's still yesterday's night
+    // After 4:30 AM on Jan 14 -> we record the night of Jan 13 (last night)
+    // Before 4:30 AM on Jan 14 -> we record the night of Jan 13 (same night, not yet ended)
     const now = new Date();
+    
+    // Always record "last night" = yesterday's date
+    // Unless it's before 4:30 AM, then it's 2 days ago (because yesterday hasn't "ended" yet)
     if (now.getHours() < UNLOCK_HOUR || (now.getHours() === UNLOCK_HOUR && now.getMinutes() < UNLOCK_MINUTE)) {
+        // Before 4:30 AM - still recording the night that started 2 days ago
+        now.setDate(now.getDate() - 2);
+    } else {
+        // After 4:30 AM - recording last night (yesterday)
         now.setDate(now.getDate() - 1);
     }
-    now.setDate(now.getDate() - 1); // Night before
     return now.toISOString().split('T')[0];
 }
 
@@ -398,29 +405,11 @@ async function loadHistory() {
         
         list.innerHTML = '';
         
-        // Show today as "in progress" if no session for last night yet
-        const lastNight = getSessionDate();
-        if (!sessions[lastNight]) {
-            const todayItem = document.createElement('div');
-            todayItem.className = 'history-item';
-            todayItem.style.opacity = '0.6';
-            todayItem.innerHTML = `
-                <div class="history-item-left">
-                    <div class="history-date">${formatDateLong(today)}</div>
-                    <div class="history-summary">Aguarda registo de amanhã</div>
-                </div>
-                <span class="history-status status-incomplete">Em progresso</span>
-            `;
-            list.appendChild(todayItem);
-        }
-        
         sessionDates.forEach((nightDate, index) => {
             const a = sessions[nightDate];
-            const nextDate = getNextDate(nightDate);
-            const nextSessionExists = sessions[nextDate];
             
-            // A day is complete when the next session exists (confirms the full day cycle)
-            const isComplete = nextSessionExists || index === 0;
+            // All recorded sessions are complete - you filled them in
+            const isComplete = true;
             
             const item = document.createElement('div');
             item.className = 'history-item';
